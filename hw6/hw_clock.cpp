@@ -12,17 +12,17 @@ static struct TimedTask *task_list = NULL;
 
 /***** functionized for readability *****/
 static inline void enable_timed_task() {
-  LPC_TIM0->MCR |= (0x1 << 3);
+  LPC_TIM2->MCR |= (0x1 << 3);
 }
 
 static inline void disable_timed_task() {
-  LPC_TIM0->MCR &= ~(0x1 << 3);
+  LPC_TIM2->MCR &= ~(0x1 << 3);
 }
 
 static inline void set_task_interrupt(struct timeval *tv) {
   uint64_t time_us = tv->tv_sec;
   time_us = time_us * US_PER_SECOND + tv->tv_usec;
-  LPC_TIM0->MR1 = (uint32_t) (time_us % MAX_UINT32);
+  LPC_TIM2->MR1 = (uint32_t) (time_us % MAX_UINT32);
 }
 
 static inline void handle_timer_overflow() {
@@ -40,33 +40,35 @@ static inline void run_timed_task() {
   }
 }
 
-static void timer0_interrupt_handler() {
-  if (LPC_TIM0->IR & MR0_INT) {
+static void timer2_interrupt_handler() {
+  if (LPC_TIM2->IR & MR0_INT) {
     handle_timer_overflow();
     wait_us(1000); // magic to not trigger the interrupt twice or something
-    LPC_TIM0->IR |= MR0_INT; // clear this interrupt
-  } else if (LPC_TIM0->IR & MR1_INT) {
+    LPC_TIM2->IR |= MR0_INT; // clear this interrupt
+  } else if (LPC_TIM2->IR & MR1_INT) {
     run_timed_task();
     wait_us(1000); // magic again
-    LPC_TIM0->IR |= MR1_INT; // clear this interrupt
+    LPC_TIM2->IR |= MR1_INT; // clear this interrupt
   }
 }
 
 static void init_hw_timer() {
-  LPC_SC->PCONP |= (0x1 << 1); // power LPC_TIM0 on
-  LPC_SC->PCLKSEL0 |= (0x1 << 2); // set PCLK_TIMER0 to CCLK
-  LPC_TIM0->CTCR = 0x0; // set LPC_TIM0 to timer mode
-  LPC_TIM0->TCR = 0x2; // reset LPC_TIM0
-  LPC_TIM0->PR = SystemCoreClock / US_PER_SECOND; // prescale makes TC tick per us
-  LPC_TIM0->MR0 = MAX_UINT32; // interrupt when overflow
-  LPC_TIM0->MCR |= (0x1 << 0) | // interrupt when MR0 matches
+  LPC_PINCON->PINSEL0 |= (0x11 << 8) | // set P0.4 (p30) to CAP2.0
+                         (0x11 << 10); // set P0.5 (p29) to CAP2.1
+  LPC_SC->PCONP |= (0x1 << 22); // power LPC_TIM2 on
+  LPC_SC->PCLKSEL1 |= (0x1 << 12); // set PCLK_TIMER2 to CCLK
+  LPC_TIM2->CTCR = 0x0; // set LPC_TIM2 to timer mode
+  LPC_TIM2->TCR = 0x2; // reset LPC_TIM2
+  LPC_TIM2->PR = SystemCoreClock / US_PER_SECOND; // prescale makes TC tick per us
+  LPC_TIM2->MR0 = MAX_UINT32; // interrupt when overflow
+  LPC_TIM2->MCR |= (0x1 << 0) | // interrupt when MR0 matches
                    (0x1 << 1) | // reset TC when MR0 matches
                    (0x0 << 2);  // don't stop timer when MR0 matches
-  NVIC_SetVector(TIMER0_IRQn, (uint32_t) &timer0_interrupt_handler);
-  NVIC_EnableIRQ(TIMER0_IRQn);
+  NVIC_SetVector(TIMER2_IRQn, (uint32_t) &timer2_interrupt_handler);
+  NVIC_EnableIRQ(TIMER2_IRQn);
 
   timer_initialized = 1;
-  LPC_TIM0->TCR = 0x01; // start counting
+  LPC_TIM2->TCR = 0x01; // start counting
 }
 
 bool is_time_earlier(struct timeval *tv0, struct timeval *tv1) {
@@ -83,7 +85,7 @@ void getTime(struct timeval *tv) {
     init_hw_timer();
   }
 
-  uint64_t ticks = stored_ticks + (uint64_t) LPC_TIM0->TC;
+  uint64_t ticks = stored_ticks + (uint64_t) LPC_TIM2->TC;
   tv->tv_usec = (time_t) (ticks % US_PER_SECOND);
   tv->tv_sec = (time_t) (ticks / US_PER_SECOND);
 }
@@ -117,5 +119,4 @@ void runAtTrigger(void (*trigFunc)(struct timeval *tv)) {
 
 void free_timed_task(struct TimedTask *tt) {
   free(tt->time);
-  free(tt);
 }
