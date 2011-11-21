@@ -64,7 +64,7 @@ static void init_hw_timer() {
                    (0x0 << 2);  // don't stop timer when MR0 matches
   NVIC_SetVector(TIMER0_IRQn, (uint32_t) &timer0_interrupt_handler);
   NVIC_EnableIRQ(TIMER0_IRQn);
-  
+
   timer_initialized = 1;
   LPC_TIM0->TCR = 0x01; // start counting
 }
@@ -82,7 +82,7 @@ void getTime(struct timeval *tv) {
   if (!timer_initialized) {
     init_hw_timer();
   }
-  
+
   uint64_t ticks = stored_ticks + (uint64_t) LPC_TIM0->TC;
   tv->tv_usec = (time_t) (ticks % US_PER_SECOND);
   tv->tv_sec = (time_t) (ticks / US_PER_SECOND);
@@ -91,21 +91,21 @@ void getTime(struct timeval *tv) {
 void runAtTime(void (*schedFunc)(void), struct timeval *tv) {
   struct timeval now;
   struct TimedTask *t;
-  
+
   getTime(&now);
   if (is_time_earlier(tv, &now)) {
     // error, can't schedule earlier than now
     printf("ERROR: UNABLE TO SCHEDULE TASK DURING PAST TIME\n\r");
     return;
   }
-  
+
   t = (struct TimedTask *) malloc(sizeof(struct TimedTask));
   t->task = schedFunc;
   t->time = (struct timeval *) malloc(sizeof(struct timeval));
   memcpy(t->time, tv, sizeof(struct timeval));
   t->next_task = NULL;
   t->prev_task = NULL;
-  
+
   enable_timed_task();
   insert_timed_task(&task_list, t);
   set_task_interrupt(task_list->time);

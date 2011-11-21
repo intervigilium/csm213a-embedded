@@ -11,7 +11,7 @@ struct timeval {
   time_t tv_usec;
 };
 
-bool is_time_earlier(struct timeval *tv0, struct timeval *tv1); 
+bool is_time_earlier(struct timeval *tv0, struct timeval *tv1);
 
 void getTime(struct timeval *tv);
 
