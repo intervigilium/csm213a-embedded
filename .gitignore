@@ -1,0 +1,8 @@
+*/mbed-beta/*
+*/mbed-beta.lib
+*/mbed.lib
+*.o
+*.bin
+*.elf
+*.zip
+mbed/*

@@ -1,0 +1,16 @@
+Ethan Chen
+EE 202A
+UCLA Fall 2011
+
+cs213-hw2-1 is part 1, which will output the capacitance in pF every 1 second
+cs213-hw2-singleloop is part 2, written as a single loop that doesn't utilize
+interrupts at all.
+cs213-hw2-fgbg is part 2, written in foreground/background style, utilizing
+interrupts to separate the foreground tasks from background.
+cs213-hw2-protothread is part 2, written in protothread style, splitting up
+the single loop version into various coroutines to handle serial input,
+t0 and t1 sensor input.
+All projects use a similar shared library for match checking.
+
+The statecharts were done in LibreOffice Draw, and included in original ODG as
+well as PDF form.

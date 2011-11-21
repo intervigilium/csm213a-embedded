@@ -1,0 +1,121 @@
+#include "hw_clock.h"
+
+
+#define MAX_UINT32 0xFFFFFFFF
+#define US_PER_SECOND 1000000
+#define MR0_INT 0x01
+#define MR1_INT 0x02
+
+static int timer_initialized = 0;
+static uint64_t stored_ticks = 0;
+static struct TimedTask *task_list = NULL;
+
+/***** functionized for readability *****/
+static inline void enable_timed_task() {
+  LPC_TIM0->MCR |= (0x1 << 3);
+}
+
+static inline void disable_timed_task() {
+  LPC_TIM0->MCR &= ~(0x1 << 3);
+}
+
+static inline void set_task_interrupt(struct timeval *tv) {
+  uint64_t time_us = tv->tv_sec;
+  time_us = time_us * US_PER_SECOND + tv->tv_usec;
+  LPC_TIM0->MR1 = (uint32_t) (time_us % MAX_UINT32);
+}
+
+static inline void handle_timer_overflow() {
+  stored_ticks += (uint64_t) MAX_UINT32; // save overflowed 0xFFFFFFFF
+}
+
+static inline void run_timed_task() {
+  struct TimedTask *task = pop_task_list(&task_list);
+  task->task();
+  free_timed_task(task);
+  if (task_list) {
+    set_task_interrupt(task_list->time);
+  } else {
+    disable_timed_task();
+  }
+}
+
+static void timer0_interrupt_handler() {
+  if (LPC_TIM0->IR & MR0_INT) {
+    handle_timer_overflow();
+    wait_us(1000); // magic to not trigger the interrupt twice or something
+    LPC_TIM0->IR |= MR0_INT; // clear this interrupt
+  } else if (LPC_TIM0->IR & MR1_INT) {
+    run_timed_task();
+    wait_us(1000); // magic again
+    LPC_TIM0->IR |= MR1_INT; // clear this interrupt
+  }
+}
+
+static void init_hw_timer() {
+  LPC_SC->PCONP |= (0x1 << 1); // power LPC_TIM0 on
+  LPC_SC->PCLKSEL0 |= (0x1 << 2); // set PCLK_TIMER0 to CCLK
+  LPC_TIM0->CTCR = 0x0; // set LPC_TIM0 to timer mode
+  LPC_TIM0->TCR = 0x2; // reset LPC_TIM0
+  LPC_TIM0->PR = SystemCoreClock / US_PER_SECOND; // prescale makes TC tick per us
+  LPC_TIM0->MR0 = MAX_UINT32; // interrupt when overflow
+  LPC_TIM0->MCR |= (0x1 << 0) | // interrupt when MR0 matches
+                   (0x1 << 1) | // reset TC when MR0 matches
+                   (0x0 << 2);  // don't stop timer when MR0 matches
+  NVIC_SetVector(TIMER0_IRQn, (uint32_t) &timer0_interrupt_handler);
+  NVIC_EnableIRQ(TIMER0_IRQn);
+  
+  timer_initialized = 1;
+  LPC_TIM0->TCR = 0x01; // start counting
+}
+
+bool is_time_earlier(struct timeval *tv0, struct timeval *tv1) {
+  // returns true if tv0 is earlier, false if tv1 is earlier
+  if (tv0->tv_sec == tv1->tv_sec) {
+    return tv0->tv_usec < tv1->tv_usec;
+  } else {
+    return tv0->tv_sec < tv1->tv_sec;
+  }
+}
+
+void getTime(struct timeval *tv) {
+  if (!timer_initialized) {
+    init_hw_timer();
+  }
+  
+  uint64_t ticks = stored_ticks + (uint64_t) LPC_TIM0->TC;
+  tv->tv_usec = (time_t) (ticks % US_PER_SECOND);
+  tv->tv_sec = (time_t) (ticks / US_PER_SECOND);
+}
+
+void runAtTime(void (*schedFunc)(void), struct timeval *tv) {
+  struct timeval now;
+  struct TimedTask *t;
+  
+  getTime(&now);
+  if (is_time_earlier(tv, &now)) {
+    // error, can't schedule earlier than now
+    printf("ERROR: UNABLE TO SCHEDULE TASK DURING PAST TIME\n\r");
+    return;
+  }
+  
+  t = (struct TimedTask *) malloc(sizeof(struct TimedTask));
+  t->task = schedFunc;
+  t->time = (struct timeval *) malloc(sizeof(struct timeval));
+  memcpy(t->time, tv, sizeof(struct timeval));
+  t->next_task = NULL;
+  t->prev_task = NULL;
+  
+  enable_timed_task();
+  insert_timed_task(&task_list, t);
+  set_task_interrupt(task_list->time);
+}
+
+void runAtTrigger(void (*trigFunc)(struct timeval *tv)) {
+
+}
+
+void free_timed_task(struct TimedTask *tt) {
+  free(tt->time);
+  free(tt);
+}
