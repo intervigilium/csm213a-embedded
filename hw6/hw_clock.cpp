@@ -5,6 +5,7 @@
 #define US_PER_SECOND 1000000
 #define MR0_INT 0x01
 #define MR1_INT 0x02
+#define CR0_INT 0x10
 
 static int timer_initialized = 0;
 static uint64_t stored_ticks = 0;
@@ -41,21 +42,35 @@ static inline void run_timed_task() {
   }
 }
 
+static inline void run_trigger_task() {
+  struct timeval tv;
+  uint64_t ticks = stored_ticks + (uint64_t) LPC_TIM2->CR0;
+  tv.tv_usec = (time_t) (ticks % US_PER_SECOND);
+  tv.tv_sec = (time_t) (ticks / US_PER_SECOND);
+  trigger_task(&tv);
+}
+
 static void timer2_interrupt_handler() {
   if (LPC_TIM2->IR & MR0_INT) {
     handle_timer_overflow();
     wait_us(1000); // magic to not trigger the interrupt twice or something
-    LPC_TIM2->IR |= MR0_INT; // clear this interrupt
+    LPC_TIM2->IR |= MR0_INT; // clear MR0 interrupt
   } else if (LPC_TIM2->IR & MR1_INT) {
     run_timed_task();
     wait_us(1000); // magic again
-    LPC_TIM2->IR |= MR1_INT; // clear this interrupt
+    LPC_TIM2->IR |= MR1_INT; // clear MR1 interrupt
+  } else if (LPC_TIM2->IR & CR0_INT) {
+    run_trigger_task();
+    wait_us(1000); // more magic
+    LPC_TIM2->IR |= CR0_INT; // clear CR0 interrupt
   }
 }
 
 static void init_hw_timer() {
-  LPC_PINCON->PINSEL0 |= (0x11 << 8) | // set P0.4 (p30) to CAP2.0
-                         (0x11 << 10); // set P0.5 (p29) to CAP2.1
+  LPC_PINCON->PINSEL0 |= (0x3 << 8) | // set P0.4 (p30) to CAP2.0
+                         (0x3 << 10); // set P0.5 (p29) to CAP2.1
+  LPC_PINCON->PINMODE0 |= (0x3 << 8) | // set P0.4 to pull down
+                          (0x3 << 10); // set P0.5 to pull down
   LPC_SC->PCONP |= (0x1 << 22); // power LPC_TIM2 on
   LPC_SC->PCLKSEL1 |= (0x1 << 12); // set PCLK_TIMER2 to CCLK
   LPC_TIM2->CTCR = 0x0; // set LPC_TIM2 to timer mode
@@ -65,6 +80,8 @@ static void init_hw_timer() {
   LPC_TIM2->MCR |= (0x1 << 0) | // interrupt when MR0 matches
                    (0x1 << 1) | // reset TC when MR0 matches
                    (0x0 << 2);  // don't stop timer when MR0 matches
+  LPC_TIM2->CCR |= (0x1 << 0) | // capture on rising edge
+                   (0x1 << 2);  // interrupt on capture
   NVIC_SetVector(TIMER2_IRQn, (uint32_t) &timer2_interrupt_handler);
   NVIC_EnableIRQ(TIMER2_IRQn);
 
