@@ -8,6 +8,7 @@
 
 static int timer_initialized = 0;
 static uint64_t stored_ticks = 0;
+static void (*trigger_task)(struct timeval *tv);
 static struct TimedTask *task_list = NULL;
 
 /***** functionized for readability *****/
@@ -114,7 +115,7 @@ void runAtTime(void (*schedFunc)(void), struct timeval *tv) {
 }
 
 void runAtTrigger(void (*trigFunc)(struct timeval *tv)) {
-
+  trigger_task = trigFunc;
 }
 
 void free_timed_task(struct TimedTask *tt) {
