@@ -36,3 +36,8 @@ struct TimedTask * pop_task_list(struct TimedTask **list) {
   task->next_task = NULL;
   return task;
 }
+
+void free_timed_task(struct TimedTask *task) {
+  free(task->time);
+  free(task);
+}

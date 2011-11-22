@@ -89,15 +89,6 @@ static void init_hw_timer() {
   LPC_TIM2->TCR = 0x01; // start counting
 }
 
-bool is_time_earlier(struct timeval *tv0, struct timeval *tv1) {
-  // returns true if tv0 is earlier, false if tv1 is earlier
-  if (tv0->tv_sec == tv1->tv_sec) {
-    return tv0->tv_usec < tv1->tv_usec;
-  } else {
-    return tv0->tv_sec < tv1->tv_sec;
-  }
-}
-
 void getTime(struct timeval *tv) {
   if (!timer_initialized) {
     init_hw_timer();
@@ -133,8 +124,4 @@ void runAtTime(void (*schedFunc)(void), struct timeval *tv) {
 
 void runAtTrigger(void (*trigFunc)(struct timeval *tv)) {
   trigger_task = trigFunc;
-}
-
-void free_timed_task(struct TimedTask *tt) {
-  free(tt->time);
 }

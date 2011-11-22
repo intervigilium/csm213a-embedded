@@ -3,7 +3,7 @@
 
 GCC_BIN = /opt/codesourcery/bin/
 PROJECT = cs213-hw6-1
-OBJECTS = hw_clock.o timed_task.o main.o
+OBJECTS = hw_clock.o time.o timed_task.o main.o
 SYS_OBJECTS = ./mbed-beta/LPC1768/GCC_CS/startup_LPC17xx.o ./mbed-beta/LPC1768/GCC_CS/sys.o ./mbed-beta/LPC1768/GCC_CS/cmsis_nvic.o ./mbed-beta/LPC1768/GCC_CS/core_cm3.o ./mbed-beta/LPC1768/GCC_CS/system_LPC17xx.o
 INCLUDE_PATHS = -I./mbed-beta -I./mbed-beta/LPC1768 -I./mbed-beta/LPC1768/GCC_CS
 LIBRARY_PATHS = -L./mbed-beta -L./mbed-beta/LPC1768 -L./mbed-beta/LPC1768/GCC_CS

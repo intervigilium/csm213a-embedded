@@ -1,7 +1,8 @@
 #ifndef TIMED_TASK_
 #define TIMED_TASK_
 
-#include "hw_clock.h"
+#include "time.h"
+
 
 struct TimedTask {
   struct timeval *time;
@@ -13,5 +14,7 @@ struct TimedTask {
 void insert_timed_task(struct TimedTask **list, struct TimedTask *task);
 
 struct TimedTask * pop_task_list(struct TimedTask **list);
+
+void free_timed_task(struct TimedTask *task);
 
 #endif
