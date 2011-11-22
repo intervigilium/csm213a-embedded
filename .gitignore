@@ -1,5 +1,5 @@
-*/mbed-beta/*
-*/mbed-beta.lib
+mbed-beta
+mbed-beta.lib
 */mbed.lib
 *.o
 *.bin
