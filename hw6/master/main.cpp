@@ -2,9 +2,15 @@
 #include "mbed.h"
 
 DigitalOut led_1(LED1);
+DigitalOut led_2(LED2);
 
 void blink_led1() {
   led_1 = !led_1;
+}
+
+void blink_led2(struct timeval *tv) {
+  led_2 = !led_2;
+  printf("Triggered at %u s, %u us\n\r", tv->tv_sec, tv->tv_usec);
 }
 
 int main() {
@@ -23,6 +29,7 @@ int main() {
   blink_time3.tv_sec = 4;
   blink_time3.tv_usec = 9012;
   runAtTime(&blink_led1, &blink_time3);
+  runAtTrigger(&blink_led2);
 
   while (1) {
     getTime(&tv);
