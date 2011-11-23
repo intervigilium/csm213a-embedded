@@ -1,0 +1,95 @@
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC2368/GCC_CS
+END
+libcapi.a
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC2368/GCC_CS/libcapi.a
+END
+cmsis_nvic.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/GCC_CS/cmsis_nvic.h
+END
+vector_functions.o
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/GCC_CS/vector_functions.o
+END
+LPC23xx.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/GCC_CS/LPC23xx.h
+END
+cmsis_nvic.o
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC2368/GCC_CS/cmsis_nvic.o
+END
+system_LPC23xx.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/GCC_CS/system_LPC23xx.h
+END
+LPC2368.ld
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/GCC_CS/LPC2368.ld
+END
+system_LPC23xx.o
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC2368/GCC_CS/system_LPC23xx.o
+END
+core_arm7.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/GCC_CS/core_arm7.h
+END
+cmsis.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/GCC_CS/cmsis.h
+END
+vector_table.o
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/GCC_CS/vector_table.o
+END
+vector_defns.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/GCC_CS/vector_defns.h
+END
+vector_realmonitor.o
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC2368/GCC_CS/vector_realmonitor.o
+END
+core_arm7.o
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC2368/GCC_CS/core_arm7.o
+END
+libmbed.a
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC2368/GCC_CS/libmbed.a
+END

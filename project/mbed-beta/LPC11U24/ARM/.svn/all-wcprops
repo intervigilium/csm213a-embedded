@@ -1,0 +1,101 @@
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC11U24/ARM
+END
+system_LPC11Uxx.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC11U24/ARM/system_LPC11Uxx.h
+END
+startup_LPC11xx.o
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC11U24/ARM/startup_LPC11xx.o
+END
+cmsis_nvic.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC11U24/ARM/cmsis_nvic.h
+END
+core_cm0.o
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/projects/libraries-testing/svn/!svn/ver/34/m0-beta/LPC11U24/ARM/core_cm0.o
+END
+system_LPC11Uxx.o
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC11U24/ARM/system_LPC11Uxx.o
+END
+cmsis_nvic.o
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC11U24/ARM/cmsis_nvic.o
+END
+LPC11U24.sct
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC11U24/ARM/LPC11U24.sct
+END
+cmsis.h
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC11U24/ARM/cmsis.h
+END
+mbed.ar
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC11U24/ARM/mbed.ar
+END
+core_cmFunc.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC11U24/ARM/core_cmFunc.h
+END
+sys.o
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/projects/libraries-testing/svn/!svn/ver/34/m0-beta/LPC11U24/ARM/sys.o
+END
+power_api.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC11U24/ARM/power_api.h
+END
+LPC11Uxx.h
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC11U24/ARM/LPC11Uxx.h
+END
+core_cmInstr.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC11U24/ARM/core_cmInstr.h
+END
+core_cm0.h
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC11U24/ARM/core_cm0.h
+END
+capi.ar
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC11U24/ARM/capi.ar
+END

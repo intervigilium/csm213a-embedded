@@ -1,8 +1,6 @@
-mbed-beta
-mbed-beta.lib
-*/mbed.lib
+*.lib
 *.o
 *.bin
 *.elf
 *.zip
-mbed/*
+mbed

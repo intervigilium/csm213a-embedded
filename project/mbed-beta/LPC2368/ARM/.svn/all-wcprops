@@ -1,0 +1,101 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC2368/ARM
+END
+cmsis_nvic.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/ARM/cmsis_nvic.h
+END
+vector_functions.o
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/ARM/vector_functions.o
+END
+LPC23xx.h
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/ARM/LPC23xx.h
+END
+LPC2368.sct
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/ARM/LPC2368.sct
+END
+cmsis_nvic.o
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/projects/libraries-testing/svn/!svn/ver/34/m0-beta/LPC2368/ARM/cmsis_nvic.o
+END
+system_LPC23xx.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/ARM/system_LPC23xx.h
+END
+system_LPC23xx.o
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/projects/libraries-testing/svn/!svn/ver/34/m0-beta/LPC2368/ARM/system_LPC23xx.o
+END
+core_arm7.h
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/ARM/core_arm7.h
+END
+cmsis.h
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/ARM/cmsis.h
+END
+vector_table.o
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/ARM/vector_table.o
+END
+vector_defns.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC2368/ARM/vector_defns.h
+END
+mbed.ar
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC2368/ARM/mbed.ar
+END
+vector_realmonitor.o
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/projects/libraries-testing/svn/!svn/ver/34/m0-beta/LPC2368/ARM/vector_realmonitor.o
+END
+sys.o
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/projects/libraries-testing/svn/!svn/ver/34/m0-beta/LPC2368/ARM/sys.o
+END
+core_arm7.o
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/projects/libraries-testing/svn/!svn/ver/34/m0-beta/LPC2368/ARM/core_arm7.o
+END
+capi.ar
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC2368/ARM/capi.ar
+END

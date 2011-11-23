@@ -1,0 +1,95 @@
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC1768/uARM
+END
+core_cm3.h
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/uARM/core_cm3.h
+END
+cmsis_nvic.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/uARM/cmsis_nvic.h
+END
+startup_LPC17xx.o
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/uARM/startup_LPC17xx.o
+END
+core_cm3.o
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/projects/libraries-testing/svn/!svn/ver/34/m0-beta/LPC1768/uARM/core_cm3.o
+END
+cmsis_nvic.o
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC1768/uARM/cmsis_nvic.o
+END
+LPC17xx.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC1768/uARM/LPC17xx.h
+END
+LPC1768.sct
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/uARM/LPC1768.sct
+END
+system_LPC17xx.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/uARM/system_LPC17xx.h
+END
+cmsis.h
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/uARM/cmsis.h
+END
+system_LPC17xx.o
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC1768/uARM/system_LPC17xx.o
+END
+mbed.ar
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC1768/uARM/mbed.ar
+END
+core_cmFunc.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/uARM/core_cmFunc.h
+END
+sys.o
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/projects/libraries-testing/svn/!svn/ver/34/m0-beta/LPC1768/uARM/sys.o
+END
+core_cmInstr.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/uARM/core_cmInstr.h
+END
+capi.ar
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC1768/uARM/capi.ar
+END

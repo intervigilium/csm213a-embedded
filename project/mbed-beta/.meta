@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<root>
+  <global/>
+  <data>
+    <created_ts>1322038692</created_ts>
+    <last_mod_ts>1322038692</last_mod_ts>
+    <is_archive>0</is_archive>
+    <is_published>0</is_published>
+    <is_svn>1</is_svn>
+    <is_module>1</is_module>
+    <is_lib>0</is_lib>
+    <url>http://mbed.org/projects/libraries-testing/svn/m0-beta</url>
+    <rev>36</rev>
+    <url_full>http://mbed.org/projects/libraries-testing/svn/m0-beta@36</url_full>
+  </data>
+</root>

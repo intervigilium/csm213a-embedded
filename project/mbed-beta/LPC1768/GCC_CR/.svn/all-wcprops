@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC1768/GCC_CR
+END
+core_cm3.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/GCC_CR/core_cm3.h
+END
+system_LPC17xx.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/GCC_CR/system_LPC17xx.h
+END
+LPC1768.ld
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/projects/libraries-testing/svn/!svn/ver/34/m0-beta/LPC1768/GCC_CR/LPC1768.ld
+END
+libcapi.a
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC1768/GCC_CR/libcapi.a
+END
+cmsis_nvic.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/GCC_CR/cmsis_nvic.h
+END
+cmsis.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/GCC_CR/cmsis.h
+END
+startup_LPC17xx.o
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC1768/GCC_CR/startup_LPC17xx.o
+END
+core_cm3.o
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC1768/GCC_CR/core_cm3.o
+END
+system_LPC17xx.o
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC1768/GCC_CR/system_LPC17xx.o
+END
+core_cmFunc.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/GCC_CR/core_cmFunc.h
+END
+cmsis_nvic.o
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC1768/GCC_CR/cmsis_nvic.o
+END
+LPC17xx.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/projects/libraries-testing/svn/!svn/ver/35/m0-beta/LPC1768/GCC_CR/LPC17xx.h
+END
+core_cmInstr.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/projects/libraries-testing/svn/!svn/ver/33/m0-beta/LPC1768/GCC_CR/core_cmInstr.h
+END
+libmbed.a
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/projects/libraries-testing/svn/!svn/ver/36/m0-beta/LPC1768/GCC_CR/libmbed.a
+END
