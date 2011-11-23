@@ -1,12 +1,8 @@
+#include "sdfs/SDFileSystem.h"
 #include "mbed.h"
+#include "nrf24ap1/nrf24ap1.h"
 
-DigitalOut myled(LED1);
 
 int main() {
-    while(1) {
-        myled = 1;
-        wait(0.2);
-        myled = 0;
-        wait(0.2);
-    }
+  return 0;
 }
