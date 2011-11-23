@@ -3,4 +3,6 @@
 *.bin
 *.elf
 *.zip
+*.svn
+*.meta
 mbed
