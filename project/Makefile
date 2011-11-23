@@ -5,8 +5,8 @@ GCC_BIN = /opt/codesourcery/bin/
 PROJECT = cs213-project
 OBJECTS = main.o sdfs/SDFileSystem.o nrf24ap1/nrf24ap1.o
 SYS_OBJECTS = ./mbed-beta/LPC1768/GCC_CS/startup_LPC17xx.o ./mbed-beta/LPC1768/GCC_CS/sys.o ./mbed-beta/LPC1768/GCC_CS/cmsis_nvic.o ./mbed-beta/LPC1768/GCC_CS/core_cm3.o ./mbed-beta/LPC1768/GCC_CS/system_LPC17xx.o ./FATFileSystem/LPC1768/FATFileSystem.ar
-INCLUDE_PATHS = -I./mbed-beta -I./mbed-beta/LPC1768 -I./mbed-beta/LPC1768/GCC_CS -I./sdfs -I./nrf24ap1 -I./FATFileSystem -I./FATFileSystem/LPC1768 -I./nrf24ap1 -I./FATFileSystem -I./FATFileSystem/LPC1768 -I./FATFileSystem/LPC2368
-LIBRARY_PATHS = -L./mbed-beta -L./mbed-beta/LPC1768 -L./mbed-beta/LPC1768/GCC_CS -L./sdfs -L./nrf24ap1 -L./FATFileSystem -L./FATFileSystem/LPC1768 -L./nrf24ap1 -L./FATFileSystem -L./FATFileSystem/LPC1768 -L./FATFileSystem/LPC2368
+INCLUDE_PATHS = -I./mbed-beta -I./mbed-beta/LPC1768 -I./mbed-beta/LPC1768/GCC_CS -I./sdfs -I./nrf24ap1 -I./FATFileSystem -I./FATFileSystem/LPC1768
+LIBRARY_PATHS = -L./mbed-beta -L./mbed-beta/LPC1768 -L./mbed-beta/LPC1768/GCC_CS -L./sdfs -L./nrf24ap1 -L./FATFileSystem -L./FATFileSystem/LPC1768
 LIBRARIES = -lmbed -lcapi
 LINKER_SCRIPT = mbed-beta/LPC1768/GCC_CS/LPC1768.ld
 
