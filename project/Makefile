@@ -43,7 +43,7 @@ clean:
 
 
 $(PROJECT).elf: $(OBJECTS) $(SYS_OBJECTS)
-	$(LD) $(LD_FLAGS) -T$(LINKER_SCRIPT) $(LIBRARY_PATHS) -o $@ $^ $(LIBRARIES) $(LD_SYS_LIBS) $(LIBRARIES) $(LD_SYS_LIBS)
+	$(LD) $(LD_FLAGS) -T$(LINKER_SCRIPT) $(LIBRARY_PATHS) -o $@ $^ $(LIBRARIES) $(LD_SYS_LIBS)
 
 $(PROJECT).bin: $(PROJECT).elf
 	$(OBJCOPY) -O binary $< $@
