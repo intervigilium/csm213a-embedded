@@ -18,7 +18,7 @@ class Nrf24ap1 {
   int OpenChannel(int chan_id);
   void CloseChannel(int chan_id);
   int Send(uint8_t *buf, int len);
-  void SetReceiveHandler(void (*handler)(int, uint8_t *, int));
+  void SetReceiveHandler(void (*handler)(uint8_t, uint8_t *, int));
   ~Nrf24ap1();
 
  protected:
@@ -26,10 +26,14 @@ class Nrf24ap1 {
 
  private:
   uint16_t dev_id_;
+  uint8_t msg_len_;
+  uint8_t msg_type_;
+  uint8_t msg_buf_;
+  int msg_idx_;
   Serial *ap1_;
   InterruptIn *cts_pin_;
   std::list<int> channels_;
-  void (*rx_handler_)(int, uint8_t *, int); // channel, data, len
+  void (*rx_handler_)(uint8_t, uint8_t *, int); // type, data, len
 };
 
 }
