@@ -66,21 +66,22 @@ static void timer2_interrupt_handler() {
   }
 }
 
-static void init_hw_timer() {
+void init_hw_timer() {
   LPC_PINCON->PINSEL0 |= (0x3 << 8) | // set P0.4 (p30) to CAP2.0
                          (0x3 << 10); // set P0.5 (p29) to CAP2.1
-  LPC_PINCON->PINMODE0 |= (0x3 << 8) | // set P0.4 to pull down
+  LPC_PINCON->PINMODE0 |= (0x1 << 8) | // set P0.4 to repeater mode
                           (0x3 << 10); // set P0.5 to pull down
   LPC_SC->PCONP |= (0x1 << 22); // power LPC_TIM2 on
   LPC_SC->PCLKSEL1 |= (0x1 << 12); // set PCLK_TIMER2 to CCLK
   LPC_TIM2->CTCR = 0x0; // set LPC_TIM2 to timer mode
   LPC_TIM2->TCR = 0x2; // reset LPC_TIM2
-  LPC_TIM2->PR = SystemCoreClock / US_PER_SECOND; // prescale makes TC tick per us
+  LPC_TIM2->PR = SystemCoreClock / US_PER_SECOND - 1; // prescale makes TC tick per us
   LPC_TIM2->MR0 = MAX_UINT32; // interrupt when overflow
   LPC_TIM2->MCR |= (0x1 << 0) | // interrupt when MR0 matches
                    (0x1 << 1) | // reset TC when MR0 matches
                    (0x0 << 2);  // don't stop timer when MR0 matches
   LPC_TIM2->CCR |= (0x1 << 0) | // capture on rising edge
+                   (0x1 << 1) | // capture on falling edge
                    (0x1 << 2);  // interrupt on capture
   NVIC_SetVector(TIMER2_IRQn, (uint32_t) &timer2_interrupt_handler);
   NVIC_EnableIRQ(TIMER2_IRQn);

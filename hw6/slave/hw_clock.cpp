@@ -75,7 +75,7 @@ static void init_hw_timer() {
   LPC_SC->PCLKSEL1 |= (0x1 << 12); // set PCLK_TIMER2 to CCLK
   LPC_TIM2->CTCR = 0x0; // set LPC_TIM2 to timer mode
   LPC_TIM2->TCR = 0x2; // reset LPC_TIM2
-  LPC_TIM2->PR = SystemCoreClock / US_PER_SECOND; // prescale makes TC tick per us
+  LPC_TIM2->PR = SystemCoreClock / US_PER_SECOND - 1; // prescale makes TC tick per us
   LPC_TIM2->MR0 = MAX_UINT32; // interrupt when overflow
   LPC_TIM2->MCR |= (0x1 << 0) | // interrupt when MR0 matches
                    (0x1 << 1) | // reset TC when MR0 matches
