@@ -58,6 +58,19 @@ void send_set_channel_id(Serial *port, int chan_id, uint16_t dev_id) {
   send_packet(port, &packet, 9);
 }
 
+void send_set_channel_period(Serial *port, int chan_id, int period) {
+  // period is 32768/period Hz
+  uint8_t packet[7];
+  packet[0] = MESG_TX_SYNC;
+  packet[1] = 3;
+  packet[2] = MESG_CHANNEL_MESG_PERIOD_ID;
+  packet[3] = chan_id;
+  packet[4] = (uint8_t)((period & 0xF0) >> 8);
+  packet[5] = (uint8_t)(period & 0x0F);
+  packet[6] = get_checksum(&packet, 6);
+  send_packet(port, &packet, 7);
+}
+
 void send_open_channel(Serial *port, int chan_id) {
   uint8_t packet[5];
   packet[0] = MESG_TX_SYNC;
