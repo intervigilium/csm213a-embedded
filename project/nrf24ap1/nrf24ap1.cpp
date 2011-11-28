@@ -81,6 +81,16 @@ void send_open_channel(Serial *port, int chan_id) {
   send_packet(port, &packet, 5);
 }
 
+void send_close_channel(Serial *port, int chan_id) {
+  uint8_t packet[5];
+  packet[0] = MESG_TX_SYNC;
+  packet[1] = 1;
+  packet[2] = MESG_CLOSE_CHANNEL_ID;
+  packet[3] = chan_id;
+  packet[4] = get_checksum(&packet, 4);
+  send_packet(port, &packet, 5);
+}
+
 }
 
 namespace Nrf24ap1 {
