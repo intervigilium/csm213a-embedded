@@ -52,6 +52,10 @@
 #define DEFAULT_DEVICE_TYPE_ID          0xFD
 #define RX_DUPLEX_CHANNEL_TYPE          0x00
 #define TX_DUPLEX_CHANNEL_TYPE          0x10
+#define RX_SHARED_CHANNEL_TYPE          0x20
+#define TX_SHARED_CHANNEL_TYPE          0x30
+#define RX_NO_CLEAR_WILDCARD_CHANNEL_TYPE 0x40
+#define TX_ONLY_CHANNEL_TYPE            0x50
 
 struct ant_packet {
   uint8_t sync;
