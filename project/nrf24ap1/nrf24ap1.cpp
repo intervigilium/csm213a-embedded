@@ -26,7 +26,7 @@ void send_assign_channel(Serial *port, int chan_id) {
   packet[2] = MESG_ASSIGN_CHANNEL_ID;
   packet[3] = chan_id;
   packet[4] = chan_type;
-  packet[5] = network_num;
+  packet[5] = DEFAULT_NETWORK_NUMBER;
   packet[6] = get_checksum(&packet, 6);
   send_packet(port, &packet, 7);
 }
@@ -50,7 +50,7 @@ void send_set_channel_id(Serial *port, int chan_id) {
   packet[4] = dev_num0;
   packet[5] = dev_num1;
   packet[6] = dev_type_id;
-  packet[7] = trans_type;
+  packet[7] = DEFAULT_TRANSMISSION_TYPE;
   packet[8] = get_checksum(&packet, 8);
   send_packet(port, &packet, 9);
 }

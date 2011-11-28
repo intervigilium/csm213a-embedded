@@ -47,6 +47,11 @@
 #define MESG_RX_EXT_MESGS_ENABLE_ID     0x66
 #define MESG_ENABLE_LED_FLASH_ID        0x68
 
+#define DEFAULT_NETWORK_NUMBER          0x00
+#define DEFAULT_TRANSMISSION_TYPE       0x00
+#define RX_DUPLEX_CHANNEL_TYPE          0x00
+#define TX_DUPLEX_CHANNEL_TYPE          0x10
+
 struct ant_packet {
   uint8_t sync;
   uint8_t length;
