@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <time.h>
+
 #include "mbed.h"
 #include "nrf24ap1.h"
 
@@ -70,6 +73,8 @@ void send_open_channel(Serial *port, int chan_id) {
 namespace Nrf24ap1 {
 
 Nrf24ap1::Nrf24ap1(PinName tx, PinName rx, PinName ctx) {
+  srand(time(NULL));
+  dev_id_ = (uint16_t)(rand() % 0xFF);
   ap1_ = new Serial(tx, rx);
   cts_pin_ = new InterruptIn(ctx);
   ap1_->attach(this, &HandleMessage, Serial:RxIrq);

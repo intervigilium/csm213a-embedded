@@ -25,6 +25,7 @@ class Nrf24ap1 {
   void HandleMessage();
 
  private:
+  uint16_t dev_id_;
   Serial *ap1_;
   InterruptIn *cts_pin_;
   std::list<int> channels_;
