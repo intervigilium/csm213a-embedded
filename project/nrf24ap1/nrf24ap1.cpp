@@ -117,17 +117,29 @@ void Nrf24ap1::Reset() {
 }
 
 int Nrf24ap1::OpenChannel(int chan_id) {
-  // assign channel
+  for (list<int>::const_iterator it = channels_.begin(); it != channels.end(); it++) {
+    if (*it == chan_id) {
+      printf("ERROR: Channel already open\n\r");
+      return -1;
+    }
+  }
+  send_assign_channel(ap1_, chan_id, 0);
   wait_ms(50);
-  // set channel id
+  send_set_channel_id(ap1_, chan_id, dev_id_);
   wait_ms(50);
-  // open channel
-
+  // TODO(echen): set channel period, RF, timeout?
+  send_open_channel(ap1_, chan_id);
+  wait_ms(50);
   channels_.push_back(chan_id);
+  return 0;
 }
 
 void Nrf24ap1::CloseChannel(int chan_id) {
-  // close channel
+  send_close_channel(ap1_, chan_id);
+  wait_ms(50);
+  send_unassign_channel(ap1_, chan_id);
+  wait_ms(50);
+  channels_.remove(chan_id);
 }
 
 int Nrf24ap1::Send(int channel_id, uint8_t *buf, int len) {
