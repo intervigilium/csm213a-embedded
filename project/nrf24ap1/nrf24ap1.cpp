@@ -22,7 +22,7 @@ void inline send_packet(Serial *port, uint8_t *packet, int len) {
   }
 }
 
-void send_assign_channel(Serial *port, int chan_id) {
+void send_assign_channel(Serial *port, int chan_id, int chan_type) {
   uint8_t packet[7];
   packet[0] = MESG_TX_SYNC;
   packet[1] = 3;
