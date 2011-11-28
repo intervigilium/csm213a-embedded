@@ -52,7 +52,7 @@ void send_set_channel_id(Serial *port, int chan_id, uint16_t dev_id) {
   packet[3] = chan_id;
   packet[4] = (uint8_t)((dev_id & 0xF0) >> 8);
   packet[5] = (uint8_t)(dev_id & 0x0F);
-  packet[6] = dev_type_id;
+  packet[6] = DEFAULT_DEVICE_TYPE_ID;
   packet[7] = DEFAULT_TRANSMISSION_TYPE;
   packet[8] = get_checksum(&packet, 8);
   send_packet(port, &packet, 9);
