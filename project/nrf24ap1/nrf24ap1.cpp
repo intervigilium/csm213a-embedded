@@ -44,14 +44,14 @@ void send_unassign_channel(Serial *port, int chan_id) {
   send_packet(port, &packet, 5);
 }
 
-void send_set_channel_id(Serial *port, int chan_id) {
+void send_set_channel_id(Serial *port, int chan_id, uint16_t dev_id) {
   uint8_t packet[9];
   packet[0] = MESG_TX_SYNC;
   packet[1] = 5;
   packet[2] = MESG_CHANNEL_ID_ID;
   packet[3] = chan_id;
-  packet[4] = dev_num0;
-  packet[5] = dev_num1;
+  packet[4] = (uint8_t)((dev_id & 0xF0) >> 8);
+  packet[5] = (uint8_t)(dev_id & 0x0F);
   packet[6] = dev_type_id;
   packet[7] = DEFAULT_TRANSMISSION_TYPE;
   packet[8] = get_checksum(&packet, 8);
