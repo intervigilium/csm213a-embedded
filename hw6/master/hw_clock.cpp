@@ -66,7 +66,7 @@ static void timer2_interrupt_handler() {
   }
 }
 
-static void init_hw_timer() {
+void init_hw_timer() {
   LPC_PINCON->PINSEL0 |= (0x3 << 8) | // set P0.4 (p30) to CAP2.0
                          (0x3 << 10); // set P0.5 (p29) to CAP2.1
   LPC_PINCON->PINMODE0 |= (0x1 << 8) | // set P0.4 to repeater mode

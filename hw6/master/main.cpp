@@ -1,39 +1,43 @@
+/* This is master's copy of main.cpp */
 #include "hw_clock.h"
 #include "mbed.h"
 
-DigitalOut led_1(LED1);
-DigitalOut led_2(LED2);
+Serial pc(USBTX, USBRX); /* PC connection via USB */
+Serial cmd(p9, p10);     /* relay commands to slave */
+Serial syn(p13, p14);    /* used to sync clock */
+DigitalOut pinout(p20);  /* pin out to toggle */
 
-void blink_led1() {
-  led_1 = !led_1;
+DigitalOut led1(LED1);   /* visual of pinout p20 */
+DigitalOut led2(LED2);   /* visual of pinin p30 */
+
+void pinToggle(void) {
+  pinout = !pinout;
+  led1 = !led1;
 }
 
-void blink_led2(struct timeval *tv) {
-  led_2 = !led_2;
-  printf("Triggered at %u s, %u us\n\r", tv->tv_sec, tv->tv_usec);
+void reportToggle(struct timeval *tv) {
+  led2 = !led2;
+  pc.printf("%u.%u triggered by %s edge\n\r",
+      tv->tv_sec, tv->tv_usec, led2? "rising" : "falling");
 }
 
-int main() {
-  struct timeval blink_time1;
-  struct timeval blink_time2;
-  struct timeval blink_time3;
-  struct timeval tv;
+int main(void) {
+  /* Print self checking info */
+  pc.printf("Master's SystemCoreClock = %u Hz\n\r", SystemCoreClock);
 
-  printf("SystemCoreClock = %u Hz\n\r", SystemCoreClock);
-  blink_time1.tv_sec = 2;
-  blink_time1.tv_usec = 1234;
-  runAtTime(&blink_led1, &blink_time1);
-  blink_time2.tv_sec = 6;
-  blink_time2.tv_usec = 5678;
-  runAtTime(&blink_led1, &blink_time2);
-  blink_time3.tv_sec = 4;
-  blink_time3.tv_usec = 9012;
-  runAtTime(&blink_led1, &blink_time3);
-  runAtTrigger(&blink_led2);
+  /* Init global variables */
+  pinout = 1;
+  led1 = 1;
+  led2 = 1;
+  init_hw_timer();
 
+  /* register reportToggle */
+  runAtTrigger(&reportToggle);
+
+  /* sync clock */
+  /* accept command from host */
+
+  /* enter infinite loop */
   while (1) {
-    getTime(&tv);
-    printf("Current elapsed: %u s, %u us\n\r", tv.tv_sec, tv.tv_usec);
-    wait_ms(1000);
   }
 }
