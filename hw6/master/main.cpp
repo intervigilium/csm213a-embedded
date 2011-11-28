@@ -43,6 +43,13 @@ void cmdCallback(void) {
   if (isspace(input))
     return;
 
+  /* debugging use: press t and print current time */
+  if (input == 't') {
+    getTime(&tv);
+    pc.printf("Now: %u.%u\n\r", tv.tv_sec, tv.tv_usec);
+    return;
+  }
+
   if (input == 'S') {
     buf_len = 0;
   } else if (input == 'E' && buf_len > 0) {
