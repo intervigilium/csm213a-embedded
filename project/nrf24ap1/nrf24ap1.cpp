@@ -116,14 +116,14 @@ void Nrf24ap1::Reset() {
   send_packet(port, &packet, 5);
 }
 
-int Nrf24ap1::OpenChannel(int chan_id) {
+int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
   for (list<int>::const_iterator it = channels_.begin(); it != channels.end(); it++) {
     if (*it == chan_id) {
       printf("ERROR: Channel already open\n\r");
       return -1;
     }
   }
-  send_assign_channel(ap1_, chan_id, 0);
+  send_assign_channel(ap1_, chan_id, chan_type);
   wait_ms(50);
   send_set_channel_id(ap1_, chan_id, dev_id_);
   wait_ms(50);
