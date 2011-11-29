@@ -12,6 +12,8 @@ void init_hw_timer(void);
 
 void getTime(struct timeval *tv);
 
+uint64_t getLongTime();
+
 void runAtTime(void (*schedFunc)(void), struct timeval *tv);
 
 void runAtTrigger( void (*trigFunc)(struct timeval *tv));

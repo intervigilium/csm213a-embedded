@@ -18,6 +18,11 @@ char buf[BUFLEN];        /* host input buffer */
 int buf_len = -1;
 struct timeval tv;
 
+int sync_byte_cnt = 0;
+uint8_t sync_bytes[16];
+uint64_t t_s0, t_s1, t_s2, t_s3;
+uint64_t t_m0, t_m1;
+
 void pinToggle(void) {
   pinout = !pinout;
   led1 = !led1;
@@ -70,9 +75,74 @@ void cmdCallback(void) {
   }
 }
 
+void printLongTime(uint64_t ticks) {
+  struct timeval tv;
+  tv.tv_usec = (time_t) (ticks % 1000000);
+  tv.tv_sec = (time_t) (ticks / 1000000);
+  pc.printf(" =  %u.%06u\n\r", tv.tv_sec, tv.tv_usec);
+}
+
+void synCallback(void) {
+  if (sync_byte_cnt > 15) {
+    pc.printf("WATCH OUT, we've got a bad ass over here!!!\n\r");
+    return;
+  }
+
+  sync_bytes[sync_byte_cnt++] = syn.getc();
+
+  if (sync_byte_cnt == 8) {
+    t_s1 = getLongTime();
+  } else if (sync_byte_cnt == 16) {
+    t_s3 = getLongTime();
+    sync_byte_cnt = 0;
+
+    t_m0 = t_m1 = 0;
+    /* calculate offset and frequency */
+    for (int i = 0; i < 8; ++i) {
+      t_m0 <<= 8;
+      t_m0 += (uint64_t)sync_bytes[7 - i];
+      t_m1 <<= 8;
+      t_m1 += (uint64_t)sync_bytes[15 - i];
+    }
+
+    /* print debug info */
+    pc.printf("\r\nTo summarize:\r\n");
+    pc.printf("t_s0: "); printLongTime(t_s0);
+    pc.printf("t_m0: "); printLongTime(t_m0);
+    pc.printf("t_s1: "); printLongTime(t_s1);
+
+    pc.printf("\r\n");
+
+    pc.printf("t_s2: "); printLongTime(t_s2);
+    pc.printf("t_m1: "); printLongTime(t_m1);
+    pc.printf("t_s3: "); printLongTime(t_s3);
+
+    /* update hw_clock's parameter */
+  }
+}
+
+void syncHelper(void) {
+  t_s2 = getLongTime();
+  for (int i = 0; i < 8; ++i)
+    syn.putc(0);
+}
+
+void sync_clock(void) {
+  struct timeval tv;
+
+  tv.tv_sec = 1;
+  tv.tv_usec = 0;
+  runAtTime(&syncHelper, &tv);
+
+  t_s0 = getLongTime();
+  for (int i = 0; i < 8; ++i)
+    syn.putc(0);
+}
+
 int main(void) {
   /* Print self checking info */
   pc.printf("Slave's SystemCoreClock = %u Hz\n\r", SystemCoreClock);
+  pc.printf("version sync 1.1\r\n");
 
   /* Init global variables */
   pinout = 1;
@@ -84,6 +154,9 @@ int main(void) {
   runAtTrigger(&reportToggle);
 
   /* sync clock */
+  syn.attach(&synCallback, Serial::RxIrq);
+  sync_clock();
+
   /* accept command from master */
   cmd.attach(&cmdCallback, Serial::RxIrq);
 

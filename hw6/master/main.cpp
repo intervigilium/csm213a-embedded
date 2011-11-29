@@ -18,6 +18,8 @@ char buf[BUFLEN];        /* host input buffer */
 int buf_len = -1;
 struct timeval tv;
 
+int sync_byte_cnt = 0;
+
 void pinToggle(void) {
   pinout = !pinout;
   led1 = !led1;
@@ -80,9 +82,29 @@ void cmdCallback(void) {
   }
 }
 
+void synCallback(void) {
+  syn.getc();
+
+  /* receive 64 bits of garbage from slave */
+  if (++sync_byte_cnt != 8)
+    return;
+
+  sync_byte_cnt = 0;
+
+  /* get current time */
+  uint64_t ticks = getLongTime();
+
+  /* send 64 bits of time value to slave */
+  for (int i = 0; i < 8; ++i) {
+    syn.putc((uint8_t)ticks);
+    ticks >>= 8;
+  }
+}
+
 int main(void) {
   /* Print self checking info */
   pc.printf("Master's SystemCoreClock = %u Hz\n\r", SystemCoreClock);
+  pc.printf("version sync 1.1\r\n");
 
   /* Init global variables */
   pinout = 1;
@@ -94,6 +116,8 @@ int main(void) {
   runAtTrigger(&reportToggle);
 
   /* sync clock */
+  syn.attach(&synCallback, Serial::RxIrq);
+
   /* accept command from host */
   pc.attach(&cmdCallback, Serial::RxIrq);
 

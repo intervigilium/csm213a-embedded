@@ -100,6 +100,10 @@ void getTime(struct timeval *tv) {
   tv->tv_sec = (time_t) (ticks / US_PER_SECOND);
 }
 
+uint64_t getLongTime() {
+  return stored_ticks + (uint64_t) LPC_TIM2->TC;
+}
+
 void runAtTime(void (*schedFunc)(void), struct timeval *tv) {
   struct timeval now;
   struct TimedTask *t;
