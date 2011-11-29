@@ -97,7 +97,6 @@ void synCallback(void) {
     sync_byte_cnt = 0;
 
     t_m0 = t_m1 = 0;
-    /* calculate offset and frequency */
     for (int i = 0; i < 8; ++i) {
       t_m0 <<= 8;
       t_m0 += (uint64_t)sync_bytes[7 - i];
@@ -117,7 +116,27 @@ void synCallback(void) {
     pc.printf("t_m1: "); printLongTime(t_m1);
     pc.printf("t_s3: "); printLongTime(t_s3);
 
-    /* update hw_clock's parameter */
+    /* calculate offset and frequency */
+    double k;
+    uint64_t temp;
+    int64_t offset;
+
+    t_s0 = (t_s0 + t_s1) / 2;
+    t_s1 = (t_s2 + t_s3) / 2;
+
+    k = (double)(t_s1 - t_s0) / (double)(t_m1 - t_m0);
+
+    temp = (uint64_t)(k * t_m0);
+    if (t_s0 > temp) {
+      offset = t_s0 - temp;
+    } else {
+      offset = temp - t_s0;
+      offset = -offset;
+    }
+
+    pc.printf("t_s = t_m * %f + %lld us\n\r", k, offset);
+
+    update_clock(k, offset);
   }
 }
 
@@ -142,7 +161,7 @@ void sync_clock(void) {
 int main(void) {
   /* Print self checking info */
   pc.printf("Slave's SystemCoreClock = %u Hz\n\r", SystemCoreClock);
-  pc.printf("version sync 1.1\r\n");
+  pc.printf("version sync 1.2\r\n");
 
   /* Init global variables */
   pinout = 1;

@@ -7,6 +7,9 @@
 #define MR1_INT 0x02
 #define CR0_INT 0x10
 
+static float k_ = 1.0f;
+static int64_t offset_ = 0;
+
 static int timer_initialized = 0;
 static uint64_t stored_ticks = 0;
 static void (*trigger_task)(struct timeval *tv);
@@ -24,6 +27,9 @@ static inline void disable_timed_task() {
 static inline void set_task_interrupt(struct timeval *tv) {
   uint64_t time_us = tv->tv_sec;
   time_us = time_us * US_PER_SECOND + tv->tv_usec;
+  /* convert master's time in slave's sense */
+  time_us *= k_;
+  time_us += offset_;
   LPC_TIM2->MR1 = (uint32_t) (time_us % MAX_UINT32);
 }
 
@@ -45,6 +51,9 @@ static inline void run_timed_task() {
 static inline void run_trigger_task() {
   struct timeval tv;
   uint64_t ticks = stored_ticks + (uint64_t) LPC_TIM2->CR0;
+  /* convert it back master's time */
+  ticks -= offset_;
+  ticks /= k_;
   tv.tv_usec = (time_t) (ticks % US_PER_SECOND);
   tv.tv_sec = (time_t) (ticks / US_PER_SECOND);
   trigger_task(&tv);
@@ -88,6 +97,19 @@ void init_hw_timer() {
 
   timer_initialized = 1;
   LPC_TIM2->TCR = 0x01; // start counting
+}
+
+/*
+ * slave's time = master's time * k + offset
+ */
+void update_clock(float k, int64_t offset) {
+  k_ = k;
+  offset_ = offset;
+  if (task_list) {
+    set_task_interrupt(task_list->time);
+  } else {
+    disable_timed_task();
+  }
 }
 
 void getTime(struct timeval *tv) {
