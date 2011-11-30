@@ -100,7 +100,7 @@ Nrf24ap1::Nrf24ap1(PinName tx, PinName rx, PinName ctx) {
   dev_id_ = (uint16_t)(rand() % 0xFF);
   ap1_ = new Serial(tx, rx);
   cts_pin_ = new InterruptIn(ctx);
-  ap1_->attach(this, &HandleMessage, Serial:RxIrq);
+  ap1_->attach(this, &Nrf24ap1::HandleMessage, Serial::RxIrq);
   ap1_->baud(NRF24AP1_BAUD);
   msg_idx_ = 0;
   msg_type_ = 0;
