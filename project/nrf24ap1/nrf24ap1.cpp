@@ -113,11 +113,11 @@ void Nrf24ap1::Reset() {
   packet[2] = MESG_SYSTEM_RESET_ID;
   packet[3] = 0;
   packet[4] = get_checksum(&packet, 4);
-  send_packet(port, &packet, 5);
+  send_packet(ap1_, &packet, 5);
 }
 
 int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
-  for (list<int>::const_iterator it = channels_.begin(); it != channels.end(); it++) {
+  for (list<int>::const_iterator it = channels_.begin(); it != channels_.end(); it++) {
     if (*it == chan_id) {
       printf("ERROR: Channel already open\n\r");
       return -1;
