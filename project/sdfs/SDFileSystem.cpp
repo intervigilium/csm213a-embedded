@@ -196,7 +196,7 @@ int SDFileSystem::initialise_card_v2() {
 
 int SDFileSystem::disk_initialize() {
 
-    int i = initialise_card();
+    initialise_card();
 //    printf("init card = %d\n", i);
 //    printf("OK\n");
 
