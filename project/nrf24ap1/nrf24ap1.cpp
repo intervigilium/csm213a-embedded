@@ -30,8 +30,8 @@ void send_assign_channel(Serial *port, int chan_id, int chan_type) {
   packet[3] = chan_id;
   packet[4] = chan_type;
   packet[5] = DEFAULT_NETWORK_NUMBER;
-  packet[6] = get_checksum(&packet, 6);
-  send_packet(port, &packet, 7);
+  packet[6] = get_checksum(packet, 6);
+  send_packet(port, packet, 7);
 }
 
 void send_unassign_channel(Serial *port, int chan_id) {
@@ -40,8 +40,8 @@ void send_unassign_channel(Serial *port, int chan_id) {
   packet[1] = 1;
   packet[2] = MESG_UNASSIGN_CHANNEL_ID;
   packet[3] = chan_id;
-  packet[4] = get_checksum(&packet, 4);
-  send_packet(port, &packet, 5);
+  packet[4] = get_checksum(packet, 4);
+  send_packet(port, packet, 5);
 }
 
 void send_set_channel_id(Serial *port, int chan_id, uint16_t dev_id) {
@@ -54,8 +54,8 @@ void send_set_channel_id(Serial *port, int chan_id, uint16_t dev_id) {
   packet[5] = (uint8_t)(dev_id & 0x0F);
   packet[6] = DEFAULT_DEVICE_TYPE_ID;
   packet[7] = DEFAULT_TRANSMISSION_TYPE;
-  packet[8] = get_checksum(&packet, 8);
-  send_packet(port, &packet, 9);
+  packet[8] = get_checksum(packet, 8);
+  send_packet(port, packet, 9);
 }
 
 void send_set_channel_period(Serial *port, int chan_id, int period) {
@@ -67,8 +67,8 @@ void send_set_channel_period(Serial *port, int chan_id, int period) {
   packet[3] = chan_id;
   packet[4] = (uint8_t)((period & 0xF0) >> 8);
   packet[5] = (uint8_t)(period & 0x0F);
-  packet[6] = get_checksum(&packet, 6);
-  send_packet(port, &packet, 7);
+  packet[6] = get_checksum(packet, 6);
+  send_packet(port, packet, 7);
 }
 
 void send_open_channel(Serial *port, int chan_id) {
@@ -77,8 +77,8 @@ void send_open_channel(Serial *port, int chan_id) {
   packet[1] = 1;
   packet[2] = MESG_OPEN_CHANNEL_ID;
   packet[3] = chan_id;
-  packet[4] = get_checksum(&packet, 4);
-  send_packet(port, &packet, 5);
+  packet[4] = get_checksum(packet, 4);
+  send_packet(port, packet, 5);
 }
 
 void send_close_channel(Serial *port, int chan_id) {
@@ -87,8 +87,8 @@ void send_close_channel(Serial *port, int chan_id) {
   packet[1] = 1;
   packet[2] = MESG_CLOSE_CHANNEL_ID;
   packet[3] = chan_id;
-  packet[4] = get_checksum(&packet, 4);
-  send_packet(port, &packet, 5);
+  packet[4] = get_checksum(packet, 4);
+  send_packet(port, packet, 5);
 }
 
 }
@@ -112,8 +112,8 @@ void Nrf24ap1::Reset() {
   packet[1] = 1;
   packet[2] = MESG_SYSTEM_RESET_ID;
   packet[3] = 0;
-  packet[4] = get_checksum(&packet, 4);
-  send_packet(ap1_, &packet, 5);
+  packet[4] = get_checksum(packet, 4);
+  send_packet(ap1_, packet, 5);
 }
 
 int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
@@ -157,8 +157,8 @@ int Nrf24ap1::Send(int chan_id, uint8_t *buf, int len) {
         break;
       }
     }
-    packet[12] = get_checksum(&packet, 12);
-    send_packet(ap1_, &packet, 13);
+    packet[12] = get_checksum(packet, 12);
+    send_packet(ap1_, packet, 13);
   }
   return 0;
 }
