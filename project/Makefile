@@ -22,7 +22,7 @@ CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_CS -DNDEBUG
 AS = $(GCC_BIN)arm-none-eabi-as
 
 LD = $(GCC_BIN)arm-none-eabi-gcc
-LD_FLAGS = -mcpu=cortex-m3 -mthumb -Wl,--gc-sections
+LD_FLAGS = -mcpu=cortex-m3 -mthumb -Wl,--gc-sections,--no-wchar-size-warning
 LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc
 
 OBJCOPY = $(GCC_BIN)arm-none-eabi-objcopy
