@@ -142,8 +142,25 @@ void Nrf24ap1::CloseChannel(int chan_id) {
   channels_.remove(chan_id);
 }
 
-int Nrf24ap1::Send(int channel_id, uint8_t *buf, int len) {
-  // use BroadcastData to push data to channel_id
+int Nrf24ap1::Send(int chan_id, uint8_t *buf, int len) {
+  int idx = 0;
+  uint8_t packet[13];
+  packet[0] = MESG_TX_SYNC;
+  packet[1] = 9;
+  packet[2] = MESG_BROADCAST_DATA_ID;
+  packet[3] = chan_id;
+
+  for (int i = 0; i < (len + 7) / 8; i++) {
+    for (int j = 4; j < 12; j++) {
+      packet[j] = buf[idx++];
+      if (idx >= len) {
+        break;
+      }
+    }
+    packet[12] = get_checksum(&packet, 12);
+    send_packet(ap1_, &packet, 13);
+  }
+  return 0;
 }
 
 void Nrf24ap1::HandleMessage() {

@@ -17,7 +17,7 @@ class Nrf24ap1 {
   void Reset();
   int OpenChannel(int chan_id, int chan_type);
   void CloseChannel(int chan_id);
-  int Send(uint8_t *buf, int len);
+  int Send(int chan_id, uint8_t *buf, int len);
   void SetReceiveHandler(void (*handler)(uint8_t, uint8_t *, int));
   ~Nrf24ap1();
 
