@@ -28,7 +28,7 @@ class Nrf24ap1 {
   uint16_t dev_id_;
   uint8_t msg_len_;
   uint8_t msg_type_;
-  uint8_t msg_buf_;
+  uint8_t *msg_buf_;
   int msg_idx_;
   Serial *ap1_;
   InterruptIn *cts_pin_;

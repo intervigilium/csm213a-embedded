@@ -175,7 +175,7 @@ void Nrf24ap1::HandleMessage() {
         free(msg_buf_);
         msg_idx_ = 0;
       } else {
-        msg_buf_[msg_idx - 3] = c;
+        msg_buf_[msg_idx_ - 3] = c;
         msg_idx_++;
       }
       break;
