@@ -27,7 +27,7 @@ void pinToggle(void) {
 
 void reportToggle(struct timeval *tv) {
   led2 = !led2;
-  pc.printf("%u.%u triggered by %s edge\n\r",
+  pc.printf("%u.%06u triggered by %s edge\n\r",
       tv->tv_sec, tv->tv_usec, led2? "rising" : "falling");
 }
 
@@ -35,11 +35,11 @@ void cmdCallback(void) {
   char input = pc.getc();
   int len;
 
-  /* relay to slave */
-  cmd.putc(input);
-
   /* flip visual */
   led3 = !led3;
+
+  /* relay to slave */
+  cmd.putc(input);
 
   /* homebrew state machine */
   if (isspace(input))
@@ -48,7 +48,7 @@ void cmdCallback(void) {
   /* debugging use: press t and print current time */
   if (input == 't') {
     getTime(&tv);
-    pc.printf("Now: %u.%u\n\r", tv.tv_sec, tv.tv_usec);
+    pc.printf("Now: %u.%06u\n\r", tv.tv_sec, tv.tv_usec);
     return;
   }
 
@@ -68,7 +68,7 @@ void cmdCallback(void) {
     }
     pc.printf("sched pin toggle event at %u.%06u\n\r", tv.tv_sec, tv.tv_usec);
     /* add event to event list */
-    runAtTime(&pinToggle, &tv);
+    //runAtTime(&pinToggle, &tv);
   } else if (isdigit(input) && buf_len >= 0) {
     if (buf_len == BUFLEN - 1) {
       pc.printf("ERROR: can't schedule event after universe ends\n\r");
@@ -104,7 +104,7 @@ void synCallback(void) {
 int main(void) {
   /* Print self checking info */
   pc.printf("Master's SystemCoreClock = %u Hz\n\r", SystemCoreClock);
-  pc.printf("version sync 1.1\r\n");
+  pc.printf("version sync 1.4\r\n");
 
   /* Init global variables */
   pinout = 1;

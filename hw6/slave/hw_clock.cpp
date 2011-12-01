@@ -118,6 +118,8 @@ void getTime(struct timeval *tv) {
   }
 
   uint64_t ticks = stored_ticks + (uint64_t) LPC_TIM2->TC;
+  ticks -= offset_;
+  ticks /= k_;
   tv->tv_usec = (time_t) (ticks % US_PER_SECOND);
   tv->tv_sec = (time_t) (ticks / US_PER_SECOND);
 }

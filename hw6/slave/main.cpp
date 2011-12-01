@@ -30,7 +30,7 @@ void pinToggle(void) {
 
 void reportToggle(struct timeval *tv) {
   led2 = !led2;
-  pc.printf("%u.%u triggered by %s edge\n\r",
+  pc.printf("%u.%06u triggered by %s edge\n\r",
       tv->tv_sec, tv->tv_usec, led2? "rising" : "falling");
 }
 
@@ -44,6 +44,13 @@ void cmdCallback(void) {
   /* homebrew state machine */
   if (isspace(input))
     return;
+
+  /* debugging use: press t and print current time */
+  if (input == 't') {
+    getTime(&tv);
+    pc.printf("Now: %u.%06u\n\r", tv.tv_sec, tv.tv_usec);
+    return;
+  }
 
   if (input == 'S') {
     buf_len = 0;
@@ -107,12 +114,14 @@ void synCallback(void) {
     /* print debug info */
     pc.printf("\r\nTo summarize:\r\n");
     pc.printf("t_s0: "); printLongTime(t_s0);
+    pc.printf("mid : "); printLongTime((t_s0 + t_s1) / 2);
     pc.printf("t_m0: "); printLongTime(t_m0);
     pc.printf("t_s1: "); printLongTime(t_s1);
 
     pc.printf("\r\n");
 
     pc.printf("t_s2: "); printLongTime(t_s2);
+    pc.printf("mid : "); printLongTime((t_s2 + t_s3) / 2);
     pc.printf("t_m1: "); printLongTime(t_m1);
     pc.printf("t_s3: "); printLongTime(t_s3);
 
@@ -147,11 +156,13 @@ void syncHelper(void) {
 }
 
 void sync_clock(void) {
+  /*
   struct timeval tv;
 
   tv.tv_sec = 1;
   tv.tv_usec = 0;
   runAtTime(&syncHelper, &tv);
+  */
 
   t_s0 = getLongTime();
   for (int i = 0; i < 8; ++i)
@@ -161,7 +172,7 @@ void sync_clock(void) {
 int main(void) {
   /* Print self checking info */
   pc.printf("Slave's SystemCoreClock = %u Hz\n\r", SystemCoreClock);
-  pc.printf("version sync 1.2\r\n");
+  pc.printf("version sync 1.4\r\n");
 
   /* Init global variables */
   pinout = 1;
@@ -174,7 +185,19 @@ int main(void) {
 
   /* sync clock */
   syn.attach(&synCallback, Serial::RxIrq);
+
+  /*
   sync_clock();
+  */
+  struct timeval tv;
+
+  tv.tv_sec = 2;
+  tv.tv_usec = 0;
+  runAtTime(&sync_clock, &tv);
+
+  tv.tv_sec = 3;
+  tv.tv_usec = 0;
+  runAtTime(&syncHelper, &tv);
 
   /* accept command from master */
   cmd.attach(&cmdCallback, Serial::RxIrq);
