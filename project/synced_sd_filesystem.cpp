@@ -1,7 +1,7 @@
 #include "synced_sd_filesystem.h"
 
 SyncedSDFileSystem::SyncedSDFileSystem(PinName mosi, PinName miso, PinName sclk, PinName cs, const char* name) :
-  SDFileSystem(name), _spi(mosi, miso, sclk), _cs(cs) {
+  SDFileSystem(mosi, miso, sclk, cs, name) {
 }
 
 int SyncedSDFileSystem::disk_initialize() {
