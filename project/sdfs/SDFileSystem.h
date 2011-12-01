@@ -33,7 +33,7 @@
  * #include "SDFileSystem.h"
  *
  * SDFileSystem sd(p5, p6, p7, p12, "sd"); // mosi, miso, sclk, cs
- *  
+ *
  * int main() {
  *     FILE *fp = fopen("/sd/myfile.txt", "w");
  *     fprintf(fp, "Hello World!\n");
@@ -54,7 +54,7 @@ public:
     SDFileSystem(PinName mosi, PinName miso, PinName sclk, PinName cs, const char* name);
     virtual int disk_initialize();
     virtual int disk_write(const char *buffer, int block_number);
-    virtual int disk_read(char *buffer, int block_number);    
+    virtual int disk_read(char *buffer, int block_number);
     virtual int disk_status();
     virtual int disk_sync();
     virtual int disk_sectors();
@@ -68,14 +68,14 @@ protected:
     int initialise_card();
     int initialise_card_v1();
     int initialise_card_v2();
-    
+
     int _read(char *buffer, int length);
     int _write(const char *buffer, int length);
     int _sd_sectors();
     int _sectors;
-    
+
     SPI _spi;
-    DigitalOut _cs;     
+    DigitalOut _cs;
 };
 
 #endif
