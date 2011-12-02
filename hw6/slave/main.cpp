@@ -19,6 +19,8 @@ int buf_len = -1;
 struct timeval tv;
 
 int sync_byte_cnt = 0;
+int synced = 0;
+double k_;
 uint8_t sync_bytes[16];
 uint64_t t_s0, t_s1, t_s2, t_s3;
 uint64_t t_m0, t_m1;
@@ -113,49 +115,74 @@ void synCallback(void) {
 
   sync_bytes[sync_byte_cnt++] = syn.getc();
 
-  if (sync_byte_cnt == 8) {
-    t_s1 = getLongTime();
-  } else if (sync_byte_cnt == 16) {
-    t_s3 = getLongTime();
-    sync_byte_cnt = 0;
+  if (!synced) {
+    if (sync_byte_cnt == 8) {
+      t_s1 = getLongTime();
+    } else if (sync_byte_cnt == 16) {
+      t_s3 = getLongTime();
+      sync_byte_cnt = 0;
 
-    t_m0 = t_m1 = 0;
-    for (int i = 0; i < 8; ++i) {
-      t_m0 <<= 8;
-      t_m0 += (uint64_t)sync_bytes[7 - i];
-      t_m1 <<= 8;
-      t_m1 += (uint64_t)sync_bytes[15 - i];
+      t_m0 = t_m1 = 0;
+      for (int i = 0; i < 8; ++i) {
+        t_m0 <<= 8;
+        t_m0 += (uint64_t)sync_bytes[7 - i];
+        t_m1 <<= 8;
+        t_m1 += (uint64_t)sync_bytes[15 - i];
+      }
+
+      /* calculate offset and frequency */
+      uint64_t temp;
+      int64_t offset;
+
+      t_s0 = (t_s0 + t_s1) / 2;
+      t_s1 = (t_s2 + t_s3) / 2;
+
+      k_ = (double)(t_s1 - t_s0) / (double)(t_m1 - t_m0);
+
+      temp = (uint64_t)(k_ * t_m0);
+      if (t_s0 > temp) {
+        offset = t_s0 - temp;
+      } else {
+        offset = temp - t_s0;
+        offset = -offset;
+      }
+
+      pc.printf("t_s = t_m * %f + %lld us\n\r", k_, offset);
+
+      update_clock(k_, offset);
+      synced = 1;
+
+      getTime(&pps_rise);
+      pps_rise.tv_sec += 5;     /* PPS signal starts after ten seconds */
+      pps_rise.tv_usec = 0;
+      pps_fall.tv_sec = pps_rise.tv_sec;     /* one pause per second */
+      pps_fall.tv_usec = 500000;
+      runAtTime(&ppsRise, &pps_rise);
+      runAtTime(&ppsFall, &pps_fall);
     }
+  } else {
+    if (sync_byte_cnt == 8) {
+      t_s1 = getLongTime();
+      sync_byte_cnt = 0;
 
-    /* calculate offset and frequency */
-    double k;
-    uint64_t temp;
-    int64_t offset;
 
-    t_s0 = (t_s0 + t_s1) / 2;
-    t_s1 = (t_s2 + t_s3) / 2;
+      t_m0 = 0;
+      for (int i = 0; i < 8; ++i) {
+        t_m0 <<= 8;
+        t_m0 += (uint64_t)sync_bytes[7 - i];
+      }
+      t_s0 = (t_s0 + t_s1) / 2;
 
-    k = (double)(t_s1 - t_s0) / (double)(t_m1 - t_m0);
-
-    temp = (uint64_t)(k * t_m0);
-    if (t_s0 > temp) {
-      offset = t_s0 - temp;
-    } else {
-      offset = temp - t_s0;
-      offset = -offset;
+      int64_t offset;
+      uint64_t temp = (uint64_t)(k_ * t_m0);
+      if (t_s0 > temp) {
+        offset = t_s0 - temp;
+      } else {
+        offset = temp - t_s0;
+        offset = -offset;
+      }
+      update_clock(k_, offset);
     }
-
-    pc.printf("t_s = t_m * %f + %lld us\n\r", k, offset);
-
-    update_clock(k, offset);
-
-    getTime(&pps_rise);
-    pps_rise.tv_sec += 5;     /* PPS signal starts after ten seconds */
-    pps_rise.tv_usec = 0;
-    pps_fall.tv_sec = pps_rise.tv_sec;     /* one pause per second */
-    pps_fall.tv_usec = 500000;
-    runAtTime(&ppsRise, &pps_rise);
-    runAtTime(&ppsFall, &pps_fall);
   }
 }
 
@@ -163,6 +190,9 @@ void sync_helper0(void) {
   t_s0 = getLongTime();
   for (int i = 0; i < 8; ++i)
     syn.putc(0);
+  getTime(&tv);
+  tv.tv_sec += 5;
+  runAtTime(&sync_helper0, &tv);
 }
 
 void sync_helper1(void) {
@@ -178,7 +208,7 @@ void sync_clock(void) {
   tv.tv_usec = 0;
   runAtTime(&sync_helper0, &tv);
 
-  tv.tv_sec = 3;
+  tv.tv_sec = 5;
   tv.tv_usec = 0;
   runAtTime(&sync_helper1, &tv);
 }
@@ -199,6 +229,8 @@ int main(void) {
 
   /* sync clock */
   syn.attach(&synCallback, Serial::RxIrq);
+  
+  /* initial sync */
   sync_clock();
 
   /* accept command from master */
