@@ -149,13 +149,13 @@ void synCallback(void) {
 
     update_clock(k, offset);
 
-  pps_rise.tv_sec = 10;     /* PPS signal starts after ten seconds */
-  pps_rise.tv_usec = 0;
-  pps_fall.tv_sec = 10;     /* one pause per second */
-  pps_fall.tv_usec = 500000;
-  runAtTime(&ppsRise, &pps_rise);
-  runAtTime(&ppsFall, &pps_fall);
-
+    getTime(&pps_rise);
+    pps_rise.tv_sec += 5;     /* PPS signal starts after ten seconds */
+    pps_rise.tv_usec = 0;
+    pps_fall.tv_sec = pps_rise.tv_sec;     /* one pause per second */
+    pps_fall.tv_usec = 500000;
+    runAtTime(&ppsRise, &pps_rise);
+    runAtTime(&ppsFall, &pps_fall);
   }
 }
 

@@ -18,11 +18,27 @@ char buf[BUFLEN];        /* host input buffer */
 int buf_len = -1;
 struct timeval tv;
 
+struct timeval pps_rise, pps_fall;
+
 int sync_byte_cnt = 0;
 
 void pinToggle(void) {
   pinout = !pinout;
   led1 = !led1;
+}
+
+void ppsRise(void) {
+  pinout = !pinout;
+  led1 = !led1;
+  pps_rise.tv_sec += 1;
+  runAtTime(&ppsRise, &pps_rise);
+}
+
+void ppsFall(void) {
+  pinout = !pinout;
+  led1 = !led1;
+  pps_fall.tv_sec += 1;
+  runAtTime(&ppsFall, &pps_fall);
 }
 
 void reportToggle(struct timeval *tv) {
@@ -104,13 +120,21 @@ void synCallback(void) {
 int main(void) {
   /* Print self checking info */
   pc.printf("Master's SystemCoreClock = %u Hz\n\r", SystemCoreClock);
-  pc.printf("version sync 1.4\r\n");
+  pc.printf("version sync 1.5\r\n");
 
   /* Init global variables */
   pinout = 1;
   led1 = 1;
   led2 = 1;
   init_hw_timer();
+
+  getTime(&pps_rise);
+  pps_rise.tv_sec += 5;     /* PPS signal starts after ten seconds */
+  pps_rise.tv_usec = 0;
+  pps_fall.tv_sec = pps_rise.tv_sec;     /* one pause per second */
+  pps_fall.tv_usec = 500000;
+  runAtTime(&ppsRise, &pps_rise);
+  runAtTime(&ppsFall, &pps_fall);
 
   /* register reportToggle */
   runAtTrigger(&reportToggle);
