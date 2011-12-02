@@ -23,9 +23,25 @@ uint8_t sync_bytes[16];
 uint64_t t_s0, t_s1, t_s2, t_s3;
 uint64_t t_m0, t_m1;
 
+struct timeval pps_rise, pps_fall;
+
 void pinToggle(void) {
   pinout = !pinout;
   led1 = !led1;
+}
+
+void ppsRise(void) {
+  pinout = !pinout;
+  led1 = !led1;
+  pps_rise.tv_sec += 1;
+  runAtTime(&ppsRise, &pps_rise);
+}
+
+void ppsFall(void) {
+  pinout = !pinout;
+  led1 = !led1;
+  pps_fall.tv_sec += 1;
+  runAtTime(&ppsFall, &pps_fall);
 }
 
 void reportToggle(struct timeval *tv) {
@@ -111,20 +127,6 @@ void synCallback(void) {
       t_m1 += (uint64_t)sync_bytes[15 - i];
     }
 
-    /* print debug info */
-    pc.printf("\r\nTo summarize:\r\n");
-    pc.printf("t_s0: "); printLongTime(t_s0);
-    pc.printf("mid : "); printLongTime((t_s0 + t_s1) / 2);
-    pc.printf("t_m0: "); printLongTime(t_m0);
-    pc.printf("t_s1: "); printLongTime(t_s1);
-
-    pc.printf("\r\n");
-
-    pc.printf("t_s2: "); printLongTime(t_s2);
-    pc.printf("mid : "); printLongTime((t_s2 + t_s3) / 2);
-    pc.printf("t_m1: "); printLongTime(t_m1);
-    pc.printf("t_s3: "); printLongTime(t_s3);
-
     /* calculate offset and frequency */
     double k;
     uint64_t temp;
@@ -146,33 +148,45 @@ void synCallback(void) {
     pc.printf("t_s = t_m * %f + %lld us\n\r", k, offset);
 
     update_clock(k, offset);
+
+  pps_rise.tv_sec = 10;     /* PPS signal starts after ten seconds */
+  pps_rise.tv_usec = 0;
+  pps_fall.tv_sec = 10;     /* one pause per second */
+  pps_fall.tv_usec = 500000;
+  runAtTime(&ppsRise, &pps_rise);
+  runAtTime(&ppsFall, &pps_fall);
+
   }
 }
 
-void syncHelper(void) {
+void sync_helper0(void) {
+  t_s0 = getLongTime();
+  for (int i = 0; i < 8; ++i)
+    syn.putc(0);
+}
+
+void sync_helper1(void) {
   t_s2 = getLongTime();
   for (int i = 0; i < 8; ++i)
     syn.putc(0);
 }
 
 void sync_clock(void) {
-  /*
   struct timeval tv;
 
-  tv.tv_sec = 1;
+  tv.tv_sec = 2;
   tv.tv_usec = 0;
-  runAtTime(&syncHelper, &tv);
-  */
+  runAtTime(&sync_helper0, &tv);
 
-  t_s0 = getLongTime();
-  for (int i = 0; i < 8; ++i)
-    syn.putc(0);
+  tv.tv_sec = 3;
+  tv.tv_usec = 0;
+  runAtTime(&sync_helper1, &tv);
 }
 
 int main(void) {
   /* Print self checking info */
   pc.printf("Slave's SystemCoreClock = %u Hz\n\r", SystemCoreClock);
-  pc.printf("version sync 1.4\r\n");
+  pc.printf("version sync 1.5\r\n");
 
   /* Init global variables */
   pinout = 1;
@@ -185,19 +199,7 @@ int main(void) {
 
   /* sync clock */
   syn.attach(&synCallback, Serial::RxIrq);
-
-  /*
   sync_clock();
-  */
-  struct timeval tv;
-
-  tv.tv_sec = 2;
-  tv.tv_usec = 0;
-  runAtTime(&sync_clock, &tv);
-
-  tv.tv_sec = 3;
-  tv.tv_usec = 0;
-  runAtTime(&syncHelper, &tv);
 
   /* accept command from master */
   cmd.attach(&cmdCallback, Serial::RxIrq);
