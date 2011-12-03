@@ -40,9 +40,12 @@ def allan_variance(data, dt=1):
 
 def main():
   in_file = open('log.out')
-  data = [offset for offset in in_file]
-  av = allan_variance(data)
-  print 'Allan variance: %f' % av
+  data_point = 1
+  av = allan_variance([float(offset) for offset in in_file])
+  for i in range(len(av)):
+    if i == data_point:
+      print av[i]
+      data_point *= 2
 
 if __name__ == '__main__':
   main()
