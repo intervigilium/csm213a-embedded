@@ -41,11 +41,25 @@ def allan_variance(data, dt=1):
 def main():
   in_file = open('log.out')
   data_point = 1
+  useful_data = []
   av = allan_variance([float(offset) for offset in in_file])
+  n = len(av)
+  b = 61920
   for i in range(len(av)):
     if i == data_point:
       print av[i]
+      useful_data.append(av[i])
       data_point *= 2
+
+  print 'Mean:',
+  print mean(useful_data)
+  print 'Min:',
+  print min(useful_data)
+  print 'Max:',
+  print max(useful_data)
+  print 'Efficiency:',
+  print mean(useful_data) * b / n
+
 
 if __name__ == '__main__':
   main()
