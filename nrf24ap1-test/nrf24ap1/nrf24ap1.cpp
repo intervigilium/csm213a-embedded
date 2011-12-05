@@ -58,6 +58,17 @@ void send_set_channel_id(Serial *port, int chan_id, uint16_t dev_id) {
   send_packet(port, packet, 9);
 }
 
+void send_set_channel_rf(Serial *port, int chan_id, uint8_t rf) {
+  uint8_t packet[6];
+  packet[0] = MESG_TX_SYNC;
+  packet[1] = 2;
+  packet[2] = MESG_CHANNEL_RADIO_FREQ_ID;
+  packet[3] = chan_id;
+  packet[4] = rf;
+  packet[5] = get_checksum(packet, 5);
+  send_packet(port, packet, 6);
+}
+
 void send_set_channel_period(Serial *port, int chan_id, int period) {
   // period is 32768/period Hz
   uint8_t packet[7];
@@ -124,6 +135,8 @@ int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
     }
   }
   send_assign_channel(ap1_, chan_id, chan_type);
+  wait_ms(50);
+  send_set_channel_rf(ap1_, chan_id, DEFAULT_CHANNEL_FREQ);
   wait_ms(50);
   send_set_channel_id(ap1_, chan_id, dev_id_);
   wait_ms(50);
