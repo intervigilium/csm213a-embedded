@@ -181,16 +181,16 @@ void Nrf24ap1::HandleMessage() {
       }
       break;
     case 1:
-      msg_type_ = c;
-      msg_idx_++;
-      break;
-    case 2:
       msg_len_ = c;
       msg_buf_ = (uint8_t *) malloc(sizeof(uint8_t) * msg_len_);
       msg_idx_++;
       break;
+    case 2:
+      msg_type_ = c;
+      msg_idx_++;
+      break;
     default:
-      if (msg_idx_ == 3 + msg_len_ - 1) {
+      if (msg_idx_ == 3 + msg_len_) {
         (*rx_handler_)(msg_type_, msg_buf_, msg_len_);
         // clean up after handling message
         free(msg_buf_);
