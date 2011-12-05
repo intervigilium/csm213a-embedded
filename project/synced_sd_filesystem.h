@@ -10,7 +10,7 @@
  * #include "mbed.h"
  * #include "SDFileSystem.h"
  *
- * SDFileSystem sd(p5, p6, p7, p12, "sd"); // mosi, miso, sclk, cs
+ * SyncedSDFileSystem sd(p5, p6, p7, p12, "sd"); // mosi, miso, sclk, cs
  *
  * int main() {
  *     FILE *fp = fopen("/sd/myfile.txt", "w");
@@ -39,6 +39,7 @@ class SyncedSDFileSystem : public SDFileSystem {
  protected:
 
  private:
+  bool is_master_;
 
 };
 
