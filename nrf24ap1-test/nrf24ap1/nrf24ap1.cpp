@@ -112,9 +112,10 @@ int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
   wait_ms(50);
   send_set_channel_rf(ap1_, chan_id, DEFAULT_CHANNEL_FREQ);
   wait_ms(50);
+  send_set_channel_period(ap1_, chan_id, DEFAULT_CHANNEL_PERIOD);
+  wait_ms(50);
   send_set_channel_id(ap1_, chan_id, dev_id_);
   wait_ms(50);
-  // TODO(echen): set channel period, RF, timeout?
   send_open_channel(ap1_, chan_id);
   wait_ms(50);
   channels_.push_back(chan_id);
