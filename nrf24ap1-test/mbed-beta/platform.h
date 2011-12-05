@@ -5,10 +5,7 @@
 #ifndef MBED_PLATFORM_H
 #define MBED_PLATFORM_H
 
-#if defined(TARGET_LPC1768) || defined(TARGET_LPC2368)
-#define MBED_RPC
-#endif
-
+//#define MBED_RPC
 #define MBED_OPERATORS
 
 #endif

@@ -163,6 +163,10 @@ int Nrf24ap1::Send(int chan_id, uint8_t *buf, int len) {
   return 0;
 }
 
+void Nrf24ap1::SetReceiveHandler(void (*handler)(uint8_t, uint8_t *, int)) {
+  rx_handler_ = handler;
+}
+
 void Nrf24ap1::HandleMessage() {
   // check what data is in serial
   // build data, send it to rx_handler if complete message
