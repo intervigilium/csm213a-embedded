@@ -7,6 +7,7 @@
 #include "mbed.h"
 
 
+#define DEFAULT_WAIT_MS 100 // default ms to wait after config
 #define NRF24AP1_BAUD 4800 // default Sparkfun ANT Baud
 
 namespace Nrf24ap1 {

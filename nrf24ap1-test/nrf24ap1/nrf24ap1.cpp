@@ -99,6 +99,7 @@ void Nrf24ap1::Reset() {
   uint8_t packet[1];
   packet[0] = 0;
   send_packet(ap1_, MESG_SYSTEM_RESET_ID, packet, 1);
+  wait_ms(DEFAULT_WAIT_MS);
 }
 
 int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
@@ -109,24 +110,24 @@ int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
     }
   }
   send_assign_channel(ap1_, chan_id, chan_type);
-  wait_ms(50);
+  wait_ms(DEFAULT_WAIT_MS);
   send_set_channel_rf(ap1_, chan_id, DEFAULT_CHANNEL_FREQ);
-  wait_ms(50);
+  wait_ms(DEFAULT_WAIT_MS);
   send_set_channel_period(ap1_, chan_id, DEFAULT_CHANNEL_PERIOD);
-  wait_ms(50);
+  wait_ms(DEFAULT_WAIT_MS);
   send_set_channel_id(ap1_, chan_id, dev_id_);
-  wait_ms(50);
+  wait_ms(DEFAULT_WAIT_MS);
   send_open_channel(ap1_, chan_id);
-  wait_ms(50);
+  wait_ms(DEFAULT_WAIT_MS);
   channels_.push_back(chan_id);
   return 0;
 }
 
 void Nrf24ap1::CloseChannel(int chan_id) {
   send_close_channel(ap1_, chan_id);
-  wait_ms(50);
+  wait_ms(DEFAULT_WAIT_MS);
   send_unassign_channel(ap1_, chan_id);
-  wait_ms(50);
+  wait_ms(DEFAULT_WAIT_MS);
   channels_.remove(chan_id);
 }
 
@@ -143,6 +144,7 @@ int Nrf24ap1::Send(int chan_id, uint8_t *buf, int len) {
       }
     }
     send_packet(ap1_, MESG_BROADCAST_DATA_ID, packet, 9);
+    wait_ms(DEFAULT_WAIT_MS);
   }
   return 0;
 }
