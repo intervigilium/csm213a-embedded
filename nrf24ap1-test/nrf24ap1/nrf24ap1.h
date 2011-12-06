@@ -26,6 +26,8 @@ class Nrf24ap1 {
   void HandleMessage();
 
  private:
+  void QueueMessage(struct ant_packet *packet);
+
   uint16_t dev_id_;
   uint8_t msg_len_;
   uint8_t msg_type_;

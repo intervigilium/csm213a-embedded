@@ -132,16 +132,16 @@ int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
       return -1;
     }
   }
-  control_queue_.push_back(get_assign_channel_packet(chan_id, chan_type));
-  control_queue_.push_back(get_set_channel_id_packet(chan_id, dev_id_));
-  control_queue_.push_back(get_open_channel_packet(chan_id));
+  QueueMessage(get_assign_channel_packet(chan_id, chan_type));
+  QueueMessage(get_set_channel_id_packet(chan_id, dev_id_));
+  QueueMessage(get_open_channel_packet(chan_id));
   channels_.push_back(chan_id);
   return 0;
 }
 
 void Nrf24ap1::CloseChannel(int chan_id) {
-  control_queue_.push_back(get_close_channel_packet(chan_id));
-  control_queue_.push_back(get_unassign_channel_packet(chan_id));
+  QueueMessage(get_close_channel_packet(chan_id));
+  QueueMessage(get_unassign_channel_packet(chan_id));
   channels_.remove(chan_id);
 }
 
@@ -201,6 +201,16 @@ void Nrf24ap1::HandleMessage() {
           break;
       }
     }
+  }
+}
+
+void Nrf24ap1::QueueMessage(struct ant_packet *packet) {
+  if (control_queue_.empty()) {
+    // send immediately
+    send_packet(ap1_, packet);
+  } else {
+    // queue is not empty means we are waiting on an event or reply
+    control_queue_.push_back(packet);
   }
 }
 
