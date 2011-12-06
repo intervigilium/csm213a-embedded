@@ -167,6 +167,7 @@ void Nrf24ap1::HandleMessage() {
       case 1:
         msg_len_ = c;
         msg_buf_ = (uint8_t *) malloc(sizeof(uint8_t) * msg_len_);
+        memset(msg_buf_, 0, sizeof(uint8_t) * msg_len_);
         msg_idx_++;
         break;
       case 2:
