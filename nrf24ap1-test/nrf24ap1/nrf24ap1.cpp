@@ -38,7 +38,6 @@ void send_packet(Serial *port, struct ant_packet *msg) {
     port->putc(msg->data[i]);
   }
   port->putc(checksum);
-  free_ant_packet(msg);
 }
 
 struct ant_packet * get_assign_channel_packet(int chan_id, int chan_type) {
@@ -147,14 +146,14 @@ void Nrf24ap1::CloseChannel(int chan_id) {
 
 int Nrf24ap1::Send(int chan_id, uint8_t *buf, int len) {
   // broadcast packet does not require nrf24ap1 reply
-  struct ant_packet *packet = NULL;
+  struct ant_packet *packet = create_ant_packet(9);
+  packet->type = MESG_BROADCAST_DATA_ID;
+  packet->data[0] = chan_id;
   int idx = 0;
   for (int i = 0; i < (len + 7) / 8; i++) {
-    packet = create_ant_packet(9);
-    packet->type = MESG_BROADCAST_DATA_ID;
-    packet->data[0] = chan_id;
-    // TODO: use memcpy instead here
+    memset(packet, 0, sizeof(uint8_t) * packet->length);
     for (int j = 1; j < 9; j++) {
+      // TODO: use memcpy instead here
       packet->data[j] = buf[idx++];
       if (idx >= len) {
         break;
@@ -162,6 +161,7 @@ int Nrf24ap1::Send(int chan_id, uint8_t *buf, int len) {
     }
     send_packet(ap1_, packet);
   }
+  free_ant_packet(packet);
   return 0;
 }
 
