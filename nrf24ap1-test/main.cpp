@@ -34,6 +34,7 @@ void on_slave_receive(uint8_t type, uint8_t *data, int len) {
 }
 
 void do_master(Nrf24ap1::Nrf24ap1 *ap1) {
+  printf("MASTER\n\r");
   char buf[13] = "pingpingping";
   ap1->SetReceiveHandler(&on_master_receive);
   ap1->OpenChannel(CHANNEL_ID, TX_DUPLEX_CHANNEL_TYPE);
@@ -44,6 +45,7 @@ void do_master(Nrf24ap1::Nrf24ap1 *ap1) {
 }
 
 void do_slave(Nrf24ap1::Nrf24ap1 *ap1) {
+  printf("SLAVE\n\r");
   char buf[13] = "pongpongpong";
   ap1->SetReceiveHandler(&on_slave_receive);
   ap1->OpenChannel(CHANNEL_ID, RX_DUPLEX_CHANNEL_TYPE);

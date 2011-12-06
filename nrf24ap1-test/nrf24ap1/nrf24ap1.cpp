@@ -161,7 +161,7 @@ void Nrf24ap1::HandleMessage() {
     case 0:
       if (c != MESG_TX_SYNC) {
         // skip bad character
-        printf("ERROR: Badly formatted message!\n\r");
+        printf("ERROR: Badly formatted message: 0x%x\n\r", c);
       } else {
         msg_idx_++;
       }
