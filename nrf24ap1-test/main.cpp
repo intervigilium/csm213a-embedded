@@ -68,6 +68,7 @@ int main() {
   }
   while (1) {
     // spin
+    wait_ms(250);
   }
   return 0;
 }
