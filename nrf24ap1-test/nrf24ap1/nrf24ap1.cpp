@@ -91,6 +91,7 @@ Nrf24ap1::Nrf24ap1(PinName tx, PinName rx, PinName ctx) {
   ap1_ = new Serial(tx, rx);
   ap1_->attach(this, &Nrf24ap1::HandleMessage, Serial::RxIrq);
   ap1_->baud(NRF24AP1_BAUD);
+  ap1_->format(8, Serial::None, 1);
   msg_buf_ = NULL;
   msg_idx_ = 0;
   msg_type_ = 0;
