@@ -48,7 +48,7 @@
 #define MESG_ENABLE_LED_FLASH_ID        0x68
 
 #define DEFAULT_NETWORK_NUMBER          0x00
-#define DEFAULT_TRANSMISSION_TYPE       0x00
+#define DEFAULT_TRANSMISSION_TYPE       0x01
 #define DEFAULT_DEVICE_TYPE_ID          0xFD
 #define DEFAULT_CHANNEL_FREQ            0x66
 #define DEFAULT_CHANNEL_PERIOD          0x1f86
