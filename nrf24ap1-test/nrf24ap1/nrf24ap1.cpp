@@ -91,6 +91,7 @@ Nrf24ap1::Nrf24ap1(PinName tx, PinName rx, PinName ctx) {
   ap1_ = new Serial(tx, rx);
   ap1_->attach(this, &Nrf24ap1::HandleMessage, Serial::RxIrq);
   ap1_->baud(NRF24AP1_BAUD);
+  msg_buf_ = NULL;
   msg_idx_ = 0;
   msg_type_ = 0;
 }
@@ -150,41 +151,35 @@ void Nrf24ap1::SetReceiveHandler(void (*handler)(uint8_t, uint8_t *, int)) {
 }
 
 void Nrf24ap1::HandleMessage() {
-  // check what data is in serial
-  // build data, send it to rx_handler if complete message
+  uint8_t c;
+
   while (ap1_->readable()) {
-    uint8_t c = ap1_->getc();
+    c = ap1_->getc();
     printf("MESSAGE_HANDLER GOT: 0x%x\n\r", c);
-    switch (msg_idx_) {
-      case 0:
-        if (c != MESG_TX_SYNC) {
-          // skip bad character
-          printf("ERROR: Badly formatted message: 0x%x\n\r", c);
-        } else {
+    if (c == MESG_TX_SYNC) {
+      free(msg_buf_);
+      msg_idx_ = 1;
+    } else {
+      switch (msg_idx_) {
+        case 1:
+          msg_len_ = c;
+          msg_buf_ = (uint8_t *) malloc(sizeof(uint8_t) * msg_len_);
+          memset(msg_buf_, 0, sizeof(uint8_t) * msg_len_);
           msg_idx_++;
-        }
-        break;
-      case 1:
-        msg_len_ = c;
-        msg_buf_ = (uint8_t *) malloc(sizeof(uint8_t) * msg_len_);
-        memset(msg_buf_, 0, sizeof(uint8_t) * msg_len_);
-        msg_idx_++;
-        break;
-      case 2:
-        msg_type_ = c;
-        msg_idx_++;
-        break;
-      default:
-        if (msg_idx_ == 3 + msg_len_) {
-          (*rx_handler_)(msg_type_, msg_buf_, msg_len_);
-          // clean up after handling message
-          free(msg_buf_);
-          msg_idx_ = 0;
-        } else {
-          msg_buf_[msg_idx_ - 3] = c;
+          break;
+        case 2:
+          msg_type_ = c;
           msg_idx_++;
-        }
-        break;
+          break;
+        default:
+          if (msg_idx_ == 3 + msg_len_) {
+            (*rx_handler_)(msg_type_, msg_buf_, msg_len_);
+          } else if (msg_idx_ < 3 + msg_len_) {
+            msg_buf_[msg_idx_ - 3] = c;
+            msg_idx_++;
+          }
+          break;
+      }
     }
   }
 }
