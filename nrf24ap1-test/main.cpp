@@ -41,7 +41,6 @@ void do_master(Nrf24ap1::Nrf24ap1 *ap1) {
   ap1->SetReceiveHandler(&on_master_receive);
   ap1->OpenChannel(CHANNEL_ID, TX_DUPLEX_CHANNEL_TYPE);
   for (int i = 0; i < NUM_ITERATIONS; i++) {
-    wait_ms(4);
     ap1->Send(CHANNEL_ID, (uint8_t *) buf, 13);
   }
 }
@@ -51,9 +50,7 @@ void do_slave(Nrf24ap1::Nrf24ap1 *ap1) {
   char buf[13] = "pongpongpong";
   ap1->SetReceiveHandler(&on_slave_receive);
   ap1->OpenChannel(CHANNEL_ID, RX_DUPLEX_CHANNEL_TYPE);
-  wait_ms(2);
   for (int i = 0; i < NUM_ITERATIONS; i++) {
-    wait_ms(4);
     ap1->Send(CHANNEL_ID, (uint8_t *) buf, 13);
   }
 }
