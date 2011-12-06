@@ -8,6 +8,7 @@
 void on_master_receive(uint8_t type, uint8_t *data, int len) {
   switch (type) {
     case MESG_BROADCAST_DATA_ID:
+      printf("MASTER RECEIVED MESSAGE: ");
       for (int i = 0; i < len; i++) {
         printf("%c", data[i]);
       }
@@ -22,6 +23,7 @@ void on_master_receive(uint8_t type, uint8_t *data, int len) {
 void on_slave_receive(uint8_t type, uint8_t *data, int len) {
   switch (type) {
     case MESG_BROADCAST_DATA_ID:
+      printf("SLAVE RECEIVED MESSAGE: ");
       for (int i = 0; i < len; i++) {
         printf("%c", data[i]);
       }
