@@ -111,10 +111,6 @@ int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
   }
   send_assign_channel(ap1_, chan_id, chan_type);
   wait_ms(DEFAULT_WAIT_MS);
-  send_set_channel_rf(ap1_, chan_id, DEFAULT_CHANNEL_FREQ);
-  wait_ms(DEFAULT_WAIT_MS);
-  send_set_channel_period(ap1_, chan_id, DEFAULT_CHANNEL_PERIOD);
-  wait_ms(DEFAULT_WAIT_MS);
   send_set_channel_id(ap1_, chan_id, dev_id_);
   wait_ms(DEFAULT_WAIT_MS);
   send_open_channel(ap1_, chan_id);
