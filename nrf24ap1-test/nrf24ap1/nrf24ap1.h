@@ -34,6 +34,7 @@ class Nrf24ap1 {
   Serial *ap1_;
   InterruptIn *cts_pin_;
   std::list<int> channels_;
+  std::list<struct ant_packet *> control_queue_;
   void (*rx_handler_)(uint8_t, uint8_t *, int); // type, data, len
 };
 

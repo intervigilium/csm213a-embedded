@@ -7,6 +7,18 @@
 
 namespace {
 
+struct ant_packet * create_ant_packet(int length) {
+  struct ant_packet *packet = (struct ant_packet *) malloc(sizeof(struct ant_packet));
+  packet->data = (uint8_t *) malloc(sizeof(uint8_t) * length);
+  packet->length = length;
+  return packet;
+}
+
+void free_ant_packet(struct ant_packet *packet) {
+  free(packet->data);
+  free(packet);
+}
+
 uint8_t get_checksum(uint8_t *buf, int len) {
   uint8_t res = 0;
 
@@ -16,68 +28,76 @@ uint8_t get_checksum(uint8_t *buf, int len) {
   return res;
 }
 
-void inline send_packet(Serial *port, uint8_t type, uint8_t *packet, int len) {
-  uint8_t checksum = MESG_TX_SYNC ^ len ^ type;
+void send_packet(Serial *port, struct ant_packet *msg) {
+  uint8_t checksum = MESG_TX_SYNC ^ msg->length ^ msg->type;
   port->putc(MESG_TX_SYNC);
-  port->putc(len);
-  port->putc(type);
-  for (int i = 0; i < len; i++) {
-    checksum ^= packet[i];
-    port->putc(packet[i]);
+  port->putc(msg->length);
+  port->putc(msg->type);
+  for (int i = 0; i < msg->length; i++) {
+    checksum ^= msg->data[i];
+    port->putc(msg->data[i]);
   }
   port->putc(checksum);
+  free_ant_packet(msg);
 }
 
-void send_assign_channel(Serial *port, int chan_id, int chan_type) {
-  uint8_t packet[3];
-  packet[0] = chan_id;
-  packet[1] = chan_type;
-  packet[2] = DEFAULT_NETWORK_NUMBER;
-  send_packet(port, MESG_ASSIGN_CHANNEL_ID, packet, 3);
+struct ant_packet * get_assign_channel_packet(int chan_id, int chan_type) {
+  struct ant_packet *packet = create_ant_packet(3);
+  packet->type = MESG_ASSIGN_CHANNEL_ID;
+  packet->data[0] = chan_id;
+  packet->data[1] = chan_type;
+  packet->data[2] = DEFAULT_NETWORK_NUMBER;
+  return packet;
 }
 
-void send_unassign_channel(Serial *port, int chan_id) {
-  uint8_t packet[1];
-  packet[0] = chan_id;
-  send_packet(port, MESG_UNASSIGN_CHANNEL_ID, packet, 1);
+struct ant_packet * get_unassign_channel_packet(int chan_id) {
+  struct ant_packet *packet = create_ant_packet(1);
+  packet->type = MESG_UNASSIGN_CHANNEL_ID;
+  packet->data[0] = chan_id;
+  return packet;
 }
 
-void send_set_channel_id(Serial *port, int chan_id, uint16_t dev_id) {
-  uint8_t packet[5];
-  packet[0] = chan_id;
-  packet[1] = (uint8_t)((dev_id & 0xF0) >> 8);
-  packet[2] = (uint8_t)(dev_id & 0x0F);
-  packet[3] = DEFAULT_DEVICE_TYPE_ID;
-  packet[4] = DEFAULT_TRANSMISSION_TYPE;
-  send_packet(port, MESG_CHANNEL_ID_ID, packet, 5);
+struct ant_packet * get_set_channel_id_packet(int chan_id, uint16_t dev_id) {
+  struct ant_packet *packet = create_ant_packet(5);
+  packet->type = MESG_CHANNEL_ID_ID;
+  packet->data[0] = chan_id;
+  packet->data[1] = (uint8_t)((dev_id & 0xF0) >> 8);
+  packet->data[2] = (uint8_t)(dev_id & 0x0F);
+  packet->data[3] = DEFAULT_DEVICE_TYPE_ID;
+  packet->data[4] = DEFAULT_TRANSMISSION_TYPE;
+  return packet;
 }
 
-void send_set_channel_rf(Serial *port, int chan_id, uint8_t rf) {
-  uint8_t packet[2];
-  packet[0] = chan_id;
-  packet[1] = rf;
-  send_packet(port, MESG_CHANNEL_RADIO_FREQ_ID, packet, 2);
+struct ant_packet * get_set_channel_rf_packet(int chan_id, uint8_t rf) {
+  struct ant_packet *packet = create_ant_packet(2);
+  packet->type = MESG_CHANNEL_RADIO_FREQ_ID;
+  packet->data[0] = chan_id;
+  packet->data[1] = rf;
+  return packet;
 }
 
-void send_set_channel_period(Serial *port, int chan_id, int period) {
+struct ant_packet * get_set_channel_period_packet(int chan_id, int period) {
   // period is 32768/period Hz
-  uint8_t packet[3];
-  packet[0] = chan_id;
-  packet[1] = (uint8_t)((period & 0xF0) >> 8);
-  packet[2] = (uint8_t)(period & 0x0F);
-  send_packet(port, MESG_CHANNEL_MESG_PERIOD_ID, packet, 3);
+  struct ant_packet *packet = create_ant_packet(3);
+  packet->type = MESG_CHANNEL_MESG_PERIOD_ID;
+  packet->data[0] = chan_id;
+  packet->data[1] = (uint8_t)((period & 0xF0) >> 8);
+  packet->data[2] = (uint8_t)(period & 0x0F);
+  return packet;
 }
 
-void send_open_channel(Serial *port, int chan_id) {
-  uint8_t packet[1];
-  packet[0] = chan_id;
-  send_packet(port, MESG_OPEN_CHANNEL_ID, packet, 1);
+struct ant_packet * get_open_channel_packet(int chan_id) {
+  struct ant_packet *packet = create_ant_packet(1);
+  packet->type = MESG_OPEN_CHANNEL_ID;
+  packet->data[0] = chan_id;
+  return packet;
 }
 
-void send_close_channel(Serial *port, int chan_id) {
-  uint8_t packet[1];
-  packet[0] = chan_id;
-  send_packet(port, MESG_CLOSE_CHANNEL_ID, packet, 1);
+struct ant_packet * get_close_channel_packet(int chan_id) {
+  struct ant_packet *packet = create_ant_packet(1);
+  packet->type = MESG_CLOSE_CHANNEL_ID;
+  packet->data[0] = chan_id;
+  return packet;
 }
 
 }
@@ -98,10 +118,11 @@ Nrf24ap1::Nrf24ap1(PinName tx, PinName rx, PinName ctx) {
 }
 
 void Nrf24ap1::Reset() {
-  uint8_t packet[1];
-  packet[0] = 0;
-  send_packet(ap1_, MESG_SYSTEM_RESET_ID, packet, 1);
-  wait_ms(DEFAULT_WAIT_MS);
+  // reset packet does not require nrf24ap1 reply
+  struct ant_packet *packet = create_ant_packet(1);
+  packet->type = MESG_SYSTEM_RESET_ID;
+  packet->data[0] = 0;
+  send_packet(ap1_, packet);
 }
 
 int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
@@ -111,38 +132,35 @@ int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
       return -1;
     }
   }
-  send_assign_channel(ap1_, chan_id, chan_type);
-  wait_ms(DEFAULT_WAIT_MS);
-  send_set_channel_id(ap1_, chan_id, dev_id_);
-  wait_ms(DEFAULT_WAIT_MS);
-  send_open_channel(ap1_, chan_id);
-  wait_ms(DEFAULT_WAIT_MS);
+  control_queue_.push_back(get_assign_channel_packet(chan_id, chan_type));
+  control_queue_.push_back(get_set_channel_id_packet(chan_id, dev_id_));
+  control_queue_.push_back(get_open_channel_packet(chan_id));
   channels_.push_back(chan_id);
   return 0;
 }
 
 void Nrf24ap1::CloseChannel(int chan_id) {
-  send_close_channel(ap1_, chan_id);
-  wait_ms(DEFAULT_WAIT_MS);
-  send_unassign_channel(ap1_, chan_id);
-  wait_ms(DEFAULT_WAIT_MS);
+  control_queue_.push_back(get_close_channel_packet(chan_id));
+  control_queue_.push_back(get_unassign_channel_packet(chan_id));
   channels_.remove(chan_id);
 }
 
 int Nrf24ap1::Send(int chan_id, uint8_t *buf, int len) {
+  // broadcast packet does not require nrf24ap1 reply
+  struct ant_packet *packet = NULL;
   int idx = 0;
-  uint8_t packet[9];
-  packet[0] = chan_id;
-
   for (int i = 0; i < (len + 7) / 8; i++) {
+    packet = create_ant_packet(9);
+    packet->type = MESG_BROADCAST_DATA_ID;
+    packet->data[0] = chan_id;
+    // TODO: use memcpy instead here
     for (int j = 1; j < 9; j++) {
-      packet[j] = buf[idx++];
+      packet->data[j] = buf[idx++];
       if (idx >= len) {
         break;
       }
     }
-    send_packet(ap1_, MESG_BROADCAST_DATA_ID, packet, 9);
-    wait_ms(DEFAULT_WAIT_MS);
+    send_packet(ap1_, packet);
   }
   return 0;
 }
@@ -174,6 +192,7 @@ void Nrf24ap1::HandleMessage() {
           break;
         default:
           if (msg_idx_ == 3 + msg_len_) {
+            // TODO: check/handle event messages before running callback
             (*rx_handler_)(msg_type_, msg_buf_, msg_len_);
           } else if (msg_idx_ < 3 + msg_len_) {
             msg_buf_[msg_idx_ - 3] = c;

@@ -60,11 +60,9 @@
 #define TX_ONLY_CHANNEL_TYPE            0x50
 
 struct ant_packet {
-  uint8_t sync;
   uint8_t length;
-  uint8_t id;
+  uint8_t type;
   uint8_t *data;
-  uint8_t checksum;
 };
 
 #endif
