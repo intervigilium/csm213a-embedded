@@ -3,7 +3,7 @@
 
 #define IS_MASTER 1
 #define CHANNEL_ID 1
-#define NUM_ITERATIONS 10
+#define NUM_ITERATIONS 2
 
 struct ap1_packet * create_ap1_packet(int len) {
   struct ap1_packet *p = (struct ap1_packet *) malloc(sizeof(struct ap1_packet));
