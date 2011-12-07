@@ -255,11 +255,11 @@ void Nrf24ap1::HandleAp1Message(uint8_t type, uint8_t *buf, int len) {
       } else {
         if (ap1_idx_ < ap1_p_->length) {
           if (ap1_idx_ + len > ap1_p_->length) {
-            memcpy(ap1_->data + ap1_idx_, buf, ap1_p_->length - ap1_idx_);
+            memcpy(ap1_p_->data + ap1_idx_, buf, ap1_p_->length - ap1_idx_);
             ap1_idx_ += ap1_p_->length - ap1_idx_;
             (*rx_handler_)(ap1_p_);
           } else {
-            memcpy(ap1_->data + ap1_idx_, buf, len);
+            memcpy(ap1_p_->data + ap1_idx_, buf, len);
             ap1_idx_ += len;
           }
         }
