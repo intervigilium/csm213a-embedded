@@ -60,8 +60,8 @@ struct ant_packet * get_set_channel_id_packet(int chan_id, uint16_t dev_id) {
   struct ant_packet *packet = create_ant_packet(5);
   packet->type = MESG_CHANNEL_ID_ID;
   packet->data[0] = chan_id;
-  packet->data[1] = (uint8_t)((dev_id & 0xF0) >> 8);
-  packet->data[2] = (uint8_t)(dev_id & 0x0F);
+  packet->data[1] = (uint8_t)((dev_id & 0xFF00) >> 8);
+  packet->data[2] = (uint8_t)(dev_id & 0x00FF);
   packet->data[3] = DEFAULT_DEVICE_TYPE_ID;
   packet->data[4] = DEFAULT_TRANSMISSION_TYPE;
   return packet;
@@ -80,8 +80,8 @@ struct ant_packet * get_set_channel_period_packet(int chan_id, int period) {
   struct ant_packet *packet = create_ant_packet(3);
   packet->type = MESG_CHANNEL_MESG_PERIOD_ID;
   packet->data[0] = chan_id;
-  packet->data[1] = (uint8_t)((period & 0xF0) >> 8);
-  packet->data[2] = (uint8_t)(period & 0x0F);
+  packet->data[1] = (uint8_t)((period & 0xFF00) >> 8);
+  packet->data[2] = (uint8_t)(period & 0x00FF);
   return packet;
 }
 
