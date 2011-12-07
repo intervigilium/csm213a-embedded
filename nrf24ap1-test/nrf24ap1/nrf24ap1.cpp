@@ -10,6 +10,7 @@ namespace {
 struct ant_packet * create_ant_packet(int length) {
   struct ant_packet *packet = (struct ant_packet *) malloc(sizeof(struct ant_packet));
   packet->data = (uint8_t *) malloc(sizeof(uint8_t) * length);
+  memset(packet->data, 0, sizeof(uint8_t) * length);
   packet->length = length;
   return packet;
 }
