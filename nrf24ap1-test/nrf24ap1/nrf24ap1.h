@@ -15,7 +15,7 @@ namespace Nrf24ap1 {
 struct ap1_packet {
   uint16_t source;
   uint16_t destination;
-  int length;
+  uint32_t length;
   uint8_t *data;
 }
 
