@@ -20,6 +20,19 @@ void free_ant_packet(struct ant_packet *packet) {
   free(packet);
 }
 
+struct ap1_packet * create_ap1_packet(int len) {
+  struct ap1_packet *packet = (struct ap1_packet *) malloc(sizeof(struct ap1_packet));
+  packet->data = (uint8_t *) malloc(sizeof(uint8_t) * len);
+  memset(packet->data, 0, sizeof(uint8_t) * len);
+  packet->length = len;
+  return packet;
+}
+
+void free_ap1_packet(struct ap1_packet *packet) {
+  free(packet->data);
+  free(packet);
+}
+
 uint8_t get_checksum(uint8_t *buf, int len) {
   uint8_t res = 0;
 
