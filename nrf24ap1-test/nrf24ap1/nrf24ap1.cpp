@@ -171,8 +171,8 @@ int Nrf24ap1::Send(int chan_id, struct ap1_packet *packet) {
   ant_packet = create_ant_packet(9);
   ant_packet->type = MESG_BROADCAST_DATA_ID;
   ant_packet->data[0] = chan_id;
-  ant_packet->data[1] = AP1_PACKET_SYNC_0;
-  ant_packet->data[2] = AP1_PACKET_SYNC_1;
+  ant_packet->data[1] = AP1_PACKET_SYNC_ID;
+  ant_packet->data[2] = 0;
   ant_packet->data[3] = (uint8_t)(packet->source & 0xFF00) >> 8;
   ant_packet->data[4] = (uint8_t)(packet->source & 0x00FF);
   ant_packet->data[5] = (uint8_t)(packet->destination & 0xFF00) >> 8;
@@ -186,11 +186,12 @@ int Nrf24ap1::Send(int chan_id, struct ap1_packet *packet) {
     ant_packet = create_ant_packet(9);
     ant_packet->type = MESG_BROADCAST_DATA_ID;
     ant_packet->data[0] = chan_id;
+    ant_packet->data[1] = AP1_PACKET_DATA_ID;
     if (i == num_ant_packets - 1) {
-      memcpy(ant_packet->data, packet->data + offset, packet->length % 8); 
+      memcpy(ant_packet->data + 2, packet->data + offset, packet->length % 7);
     } else {
-      memcpy(ant_packet->data, packet->data + offset, 8);
-      offset += 8;
+      memcpy(ant_packet->data + 2, packet->data + offset, 7);
+      offset += 7;
     }
     QueueMessage(ant_packet);
   }
@@ -203,7 +204,6 @@ void Nrf24ap1::SetReceiveHandler(void (*handler)(struct ap1_packet *)) {
 
 void Nrf24ap1::OnAp1Rx() {
   uint8_t c;
-
   while (ap1_->readable()) {
     c = ap1_->getc();
     printf("MESSAGE_HANDLER GOT: 0x%x\n\r", c);
@@ -236,31 +236,31 @@ void Nrf24ap1::OnAp1Rx() {
 }
 
 void Nrf24ap1::HandleAp1Message(uint8_t type, uint8_t *buf, int len) {
-  uint8_t channel, response_type, response_code;
-  uint8_t ap1_header0, ap1_header1;
+  uint8_t channel, response_type, response_code, ap1_packet_id;
   struct ant_packet *ant_p = NULL;
   switch (type) {
     case MESG_BROADCAST_DATA_ID:
     case MESG_ACKNOWLEDGED_DATA_ID:
     case MESG_BURST_DATA_ID:
-      ap1_header0 = buf[1];
-      ap1_header1 = buf[2];
-      if (ap1_header0 == AP1_PACKET_SYNC_0 &&
-          ap1_header1 == AP1_PACKET_SYNC_1) {
+      channel = buf[0];
+      ap1_packet_id = buf[1];
+      if (ap1_packet_id == AP1_PACKET_SYNC_ID) {
         free_ap1_packet(ap1_p_);
         ap1_p_ = create_ap1_packet((buf[7] << 8) | buf[8]);
         ap1_p_->source = (buf[3] << 8) | buf[4];
         ap1_p_->destination = (buf[5] << 8) | buf[6];
         ap1_idx_ = 0;
-      } else {
+      } else if (ap1_packet_id == AP1_PACKET_DATA_ID) {
         if (ap1_idx_ < ap1_p_->length) {
-          if (ap1_idx_ + len > ap1_p_->length) {
-            memcpy(ap1_p_->data + ap1_idx_, buf, ap1_p_->length - ap1_idx_);
+          if (ap1_idx_ + len - 2 > ap1_p_->length) {
+            memcpy(ap1_p_->data + ap1_idx_, buf + 2, ap1_p_->length - ap1_idx_);
             ap1_idx_ += ap1_p_->length - ap1_idx_;
+            // TODO: check for src/dst match, dst 0 = broadcast
             (*rx_handler_)(ap1_p_);
           } else {
-            memcpy(ap1_p_->data + ap1_idx_, buf, len);
-            ap1_idx_ += len;
+            // copy out 7 data bytes
+            memcpy(ap1_p_->data + ap1_idx_, buf + 2, len - 2);
+            ap1_idx_ += len - 2;
           }
         }
       }
