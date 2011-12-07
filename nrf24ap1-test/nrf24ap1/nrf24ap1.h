@@ -33,7 +33,8 @@ class Nrf24ap1 {
   ~Nrf24ap1();
 
  private:
-  void HandleAp1Message(uint8_t type, uint8_t *buf, int len);
+  void HandleAp1DataMessage(uint8_t type, uint8_t *buf, int len);
+  void HandleAp1EventMessage(uint8_t type, uint8_t *buf, int len);
   void OnAp1Rx();
   void QueueMessage(struct ant_packet *packet);
 

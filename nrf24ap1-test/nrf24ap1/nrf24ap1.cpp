@@ -224,7 +224,19 @@ void Nrf24ap1::OnAp1Rx() {
           break;
         default:
           if (msg_idx_ == 3 + msg_len_) {
-            HandleAp1Message(msg_type_, msg_buf_, msg_len_);
+            switch (msg_type_) {
+              case MESG_BROADCAST_DATA_ID:
+              case MESG_ACKNOWLEDGED_DATA_ID:
+              case MESG_BURST_DATA_ID:
+                HandleAp1DataMessage(msg_type_, msg_buf_, msg_len_);
+                break;
+              case MESG_RESPONSE_EVENT_ID:
+                HandleAp1EventMessage(msg_type_, msg_buf_, msg_len_);
+                break;
+              default:
+                printf("INFO: Received message type: 0x%x\n\r", msg_type_);
+                break;
+            }
           } else if (msg_idx_ < 3 + msg_len_) {
             msg_buf_[msg_idx_ - 3] = c;
             msg_idx_++;
@@ -235,85 +247,89 @@ void Nrf24ap1::OnAp1Rx() {
   }
 }
 
-void Nrf24ap1::HandleAp1Message(uint8_t type, uint8_t *buf, int len) {
-  uint8_t channel, response_type, response_code, ap1_packet_id;
-  struct ant_packet *ant_p = NULL;
-  switch (type) {
-    case MESG_BROADCAST_DATA_ID:
-    case MESG_ACKNOWLEDGED_DATA_ID:
-    case MESG_BURST_DATA_ID:
-      channel = buf[0];
-      ap1_packet_id = buf[1];
-      if (ap1_packet_id == AP1_PACKET_SYNC_ID) {
-        free_ap1_packet(ap1_p_);
-        ap1_p_ = create_ap1_packet((buf[7] << 8) | buf[8]);
-        ap1_p_->source = (buf[3] << 8) | buf[4];
-        ap1_p_->destination = (buf[5] << 8) | buf[6];
-        ap1_idx_ = 0;
-      } else if (ap1_packet_id == AP1_PACKET_DATA_ID) {
-        if (ap1_idx_ < ap1_p_->length) {
-          if (ap1_idx_ + len - 2 > ap1_p_->length) {
-            memcpy(ap1_p_->data + ap1_idx_, buf + 2, ap1_p_->length - ap1_idx_);
-            ap1_idx_ += ap1_p_->length - ap1_idx_;
-            // TODO: check for src/dst match, dst 0 = broadcast
-            (*rx_handler_)(ap1_p_);
-          } else {
-            // copy out 7 data bytes
-            memcpy(ap1_p_->data + ap1_idx_, buf + 2, len - 2);
-            ap1_idx_ += len - 2;
-          }
-        }
+void Nrf24ap1::HandleAp1DataMessage(uint8_t type, uint8_t *buf, int len) {
+  uint8_t channel = buf[0];
+  uint8_t ap1_packet_id = buf[1];
+  if (ap1_packet_id == AP1_PACKET_SYNC_ID) {
+    free_ap1_packet(ap1_p_);
+    ap1_p_ = create_ap1_packet((buf[7] << 8) | buf[8]);
+    ap1_p_->source = (buf[3] << 8) | buf[4];
+    ap1_p_->destination = (buf[5] << 8) | buf[6];
+    ap1_idx_ = 0;
+  } else if (ap1_packet_id == AP1_PACKET_DATA_ID) {
+    if (ap1_idx_ < ap1_p_->length) {
+      if (ap1_idx_ + len - 2 > ap1_p_->length) {
+        memcpy(ap1_p_->data + ap1_idx_, buf + 2, ap1_p_->length - ap1_idx_);
+        ap1_idx_ += ap1_p_->length - ap1_idx_;
+        // TODO: check for src/dst match, dst 0 = broadcast
+        (*rx_handler_)(ap1_p_);
+      } else {
+        // copy out 7 data bytes
+        memcpy(ap1_p_->data + ap1_idx_, buf + 2, len - 2);
+        ap1_idx_ += len - 2;
       }
-      break;
-    case MESG_RESPONSE_EVENT_ID:
-      channel = buf[0];
-      response_type = buf[1];
-      response_code = buf[2];
-      switch (response_code) {
-        case RESPONSE_NO_ERROR:
-        case EVENT_TX:
-          ant_p = control_queue_.front();
-          if (ant_p->type == response_type) {
+    }
+  }
+}
+
+void Nrf24ap1::HandleAp1EventMessage(uint8_t type, uint8_t *buf, int len) {
+  struct ant_packet *ant_p = NULL;
+  uint8_t channel = buf[0];
+  uint8_t response_type = buf[1];
+  uint8_t response_code = buf[2];
+  switch (response_code) {
+    case RESPONSE_NO_ERROR:
+    case EVENT_TX:
+      if (control_queue_.empty()) {
+        printf("ERROR: No message in queue\n\r");
+        break;
+      } else {
+        ant_p = control_queue_.front();
+        switch (ant_p->type) {
+          case MESG_SYSTEM_RESET_ID:
+          case MESG_BROADCAST_DATA_ID:
+          case MESG_ACKNOWLEDGED_DATA_ID:
+          case MESG_BURST_DATA_ID:
             control_queue_.pop_front();
             free_ant_packet(ant_p);
-            if (!control_queue_.empty()) {
-              ant_p = control_queue_.front();
-              send_packet(ap1_, ant_p);
-              if (ant_p->type == MESG_BROADCAST_DATA_ID ||
-                  ant_p->type == MESG_SYSTEM_RESET_ID) {
-                // broadcast and reset don't ACK
-                control_queue_.pop_front();
-                free_ant_packet(ant_p);
-              }
-            }
-          } else {
-            printf("ERROR: Response type: 0x%x, expecting: 0x%x\n\r",
-                   response_type, ant_p->type);
+            break;
+          default:
+            break;
+        }
+      }
+      ant_p = control_queue_.front();
+      if (ant_p->type == response_type) {
+        control_queue_.pop_front();
+        free_ant_packet(ant_p);
+        if (!control_queue_.empty()) {
+          ant_p = control_queue_.front();
+          send_packet(ap1_, ant_p);
+          if (ant_p->type == MESG_BROADCAST_DATA_ID ||
+              ant_p->type == MESG_SYSTEM_RESET_ID) {
+            // broadcast and reset don't ACK
+            control_queue_.pop_front();
+            free_ant_packet(ant_p);
           }
-          break;
-        default:
-          printf("ERROR: Received response 0x%x for 0x%x\n\r",
-                 response_code, ant_p->type);
-          break;
+        }
+      } else {
+        printf("ERROR: Response type: 0x%x, expecting: 0x%x\n\r",
+               response_type, ant_p->type);
       }
       break;
     default:
-      printf("INFO: Received message type: 0x%x\n\r", type);
+      printf("ERROR: Received response 0x%x for 0x%x\n\r",
+             response_code, ant_p->type);
       break;
   }
 }
 
 void Nrf24ap1::QueueMessage(struct ant_packet *packet) {
   if (control_queue_.empty()) {
-    // send immediately
+    printf("SEND: packet type: 0x%x\n\r", packet->type);
+    control_queue_.push_back(packet);
     send_packet(ap1_, packet);
-    if (packet->type == MESG_BROADCAST_DATA_ID ||
-        packet->type == MESG_SYSTEM_RESET_ID) {
-      // don't save these waiting for ACK
-      free_ant_packet(packet);
-    }
   } else {
-    // queue is not empty means we are waiting on an event or reply
+    printf("QUEUE: packet type: 0x%x\n\r", packet->type);
     control_queue_.push_back(packet);
   }
 }
