@@ -148,7 +148,7 @@ void Nrf24ap1::CloseChannel(int chan_id) {
   channels_.remove(chan_id);
 }
 
-int Nrf24ap1::Send(int chan_id, uint8_t *buf, int len) {
+int Nrf24ap1::Send(int chan_id, struct ap1_packet *packet) {
   struct ant_packet *packet = NULL;
   int idx = 0;
   for (int i = 0; i < (len + 7) / 8; i++) {

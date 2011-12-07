@@ -12,6 +12,13 @@
 
 namespace Nrf24ap1 {
 
+struct ap1_packet {
+  uint16_t source;
+  uint16_t destination;
+  int length;
+  uint8_t *data;
+}
+
 class Nrf24ap1 {
  public:
   Nrf24ap1(PinName tx, PinName rx, PinName cts);
@@ -19,7 +26,7 @@ class Nrf24ap1 {
   void Reset();
   int OpenChannel(int chan_id, int chan_type);
   void CloseChannel(int chan_id);
-  int Send(int chan_id, uint8_t *buf, int len);
+  int Send(int chan_id, struct ap1_packet *packet);
   void SetReceiveHandler(void (*handler)(uint8_t, uint8_t *, int));
   ~Nrf24ap1();
 
