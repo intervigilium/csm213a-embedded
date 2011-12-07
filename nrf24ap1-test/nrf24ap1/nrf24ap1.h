@@ -9,9 +9,6 @@
 
 #define DEFAULT_WAIT_MS 100 // default ms to wait after config
 #define NRF24AP1_BAUD 4800 // default Sparkfun ANT Baud
-
-namespace Nrf24ap1 {
-
 #define AP1_PACKET_SYNC_0 0xAF
 #define AP1_PACKET_SYNC_1 0xED
 
@@ -20,7 +17,9 @@ struct ap1_packet {
   uint16_t destination;
   uint16_t length;
   uint8_t *data;
-}
+};
+
+namespace Nrf24ap1 {
 
 class Nrf24ap1 {
  public:
