@@ -30,7 +30,7 @@ class Nrf24ap1 {
   int OpenChannel(int chan_id, int chan_type);
   void CloseChannel(int chan_id);
   int Send(int chan_id, struct ap1_packet *packet);
-  void SetReceiveHandler(void (*handler)(uint8_t, uint8_t *, int));
+  void SetReceiveHandler(void (*handler)(struct ap1_packet *));
   ~Nrf24ap1();
 
  private:
@@ -47,7 +47,7 @@ class Nrf24ap1 {
   InterruptIn *cts_pin_;
   std::list<int> channels_;
   std::list<struct ant_packet *> control_queue_;
-  void (*rx_handler_)(uint8_t, uint8_t *, int); // type, data, len
+  void (*rx_handler_)(struct ap1_packet *);
 };
 
 }
