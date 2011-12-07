@@ -197,7 +197,7 @@ int Nrf24ap1::Send(int chan_id, struct ap1_packet *packet) {
   return 0;
 }
 
-void Nrf24ap1::SetReceiveHandler(void (*handler)(uint8_t, uint8_t *, int)) {
+void Nrf24ap1::SetReceiveHandler(void (*handler)(struct ap1_packet *)) {
   rx_handler_ = handler;
 }
 
