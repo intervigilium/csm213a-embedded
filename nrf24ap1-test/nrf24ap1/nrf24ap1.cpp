@@ -116,6 +116,11 @@ Nrf24ap1::Nrf24ap1(PinName tx, PinName rx, PinName ctx) {
   msg_type_ = 0;
 }
 
+uint16_t Nrf24ap1::GetDeviceId() {
+  // randomly generated each time
+  return dev_id_;
+}
+
 void Nrf24ap1::Reset() {
   // reset packet does not require nrf24ap1 reply
   struct ant_packet *packet = create_ant_packet(1);

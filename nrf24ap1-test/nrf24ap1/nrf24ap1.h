@@ -15,6 +15,7 @@ namespace Nrf24ap1 {
 class Nrf24ap1 {
  public:
   Nrf24ap1(PinName tx, PinName rx, PinName cts);
+  uint16_t GetDeviceId();
   void Reset();
   int OpenChannel(int chan_id, int chan_type);
   void CloseChannel(int chan_id);
