@@ -122,11 +122,10 @@ uint16_t Nrf24ap1::GetDeviceId() {
 }
 
 void Nrf24ap1::Reset() {
-  // reset packet does not require nrf24ap1 reply
   struct ant_packet *packet = create_ant_packet(1);
   packet->type = MESG_SYSTEM_RESET_ID;
   packet->data[0] = 0;
-  send_packet(ap1_, packet);
+  QueueMessage(packet);
 }
 
 int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
@@ -150,12 +149,12 @@ void Nrf24ap1::CloseChannel(int chan_id) {
 }
 
 int Nrf24ap1::Send(int chan_id, uint8_t *buf, int len) {
-  // broadcast packet does not require nrf24ap1 reply
-  struct ant_packet *packet = create_ant_packet(9);
-  packet->type = MESG_BROADCAST_DATA_ID;
-  packet->data[0] = chan_id;
+  struct ant_packet *packet = NULL;
   int idx = 0;
   for (int i = 0; i < (len + 7) / 8; i++) {
+    packet = create_ant_packet(9);
+    packet->type = MESG_BROADCAST_DATA_ID;
+    packet->data[0] = chan_id;
     memset(packet, 0, sizeof(uint8_t) * packet->length);
     for (int j = 1; j < 9; j++) {
       // TODO: use memcpy instead here
@@ -164,9 +163,8 @@ int Nrf24ap1::Send(int chan_id, uint8_t *buf, int len) {
         break;
       }
     }
-    send_packet(ap1_, packet);
+    QueueMessage(packet);
   }
-  free_ant_packet(packet);
   return 0;
 }
 
@@ -259,6 +257,11 @@ void Nrf24ap1::QueueMessage(struct ant_packet *packet) {
   if (control_queue_.empty()) {
     // send immediately
     send_packet(ap1_, packet);
+    if (packet->type == MESG_BROADCAST_DATA_ID ||
+        packet->type == MESG_SYSTEM_RESET_ID) {
+      // don't save these waiting for ACK
+      free_ant_packet(packet);
+    }
   } else {
     // queue is not empty means we are waiting on an event or reply
     control_queue_.push_back(packet);
