@@ -125,9 +125,12 @@ Nrf24ap1::Nrf24ap1(PinName tx, PinName rx, PinName ctx) {
   ap1_->attach(this, &Nrf24ap1::OnAp1Rx, Serial::RxIrq);
   ap1_->baud(NRF24AP1_BAUD);
   ap1_->format(8, Serial::None, 1);
-  msg_buf_ = NULL;
-  msg_idx_ = 0;
+  msg_len_ = 0;
   msg_type_ = 0;
+  msg_buf_ = NULL;
+  msg_idx_ = 99;
+  ap1_packet_buf_ = NULL;
+  ap1_idx_ = 99;
 }
 
 uint16_t Nrf24ap1::GetDeviceId() {
@@ -251,21 +254,21 @@ void Nrf24ap1::HandleAp1DataMessage(uint8_t type, uint8_t *buf, int len) {
   uint8_t channel = buf[0];
   uint8_t ap1_packet_id = buf[1];
   if (ap1_packet_id == AP1_PACKET_SYNC_ID) {
-    free_ap1_packet(ap1_p_);
-    ap1_p_ = create_ap1_packet((buf[7] << 8) | buf[8]);
-    ap1_p_->source = (buf[3] << 8) | buf[4];
-    ap1_p_->destination = (buf[5] << 8) | buf[6];
+    free_ap1_packet(ap1_packet_buf_);
+    ap1_packet_buf_ = create_ap1_packet((buf[7] << 8) | buf[8]);
+    ap1_packet_buf_->source = (buf[3] << 8) | buf[4];
+    ap1_packet_buf_->destination = (buf[5] << 8) | buf[6];
     ap1_idx_ = 0;
   } else if (ap1_packet_id == AP1_PACKET_DATA_ID) {
-    if (ap1_idx_ < ap1_p_->length) {
-      if (ap1_idx_ + len - 2 > ap1_p_->length) {
-        memcpy(ap1_p_->data + ap1_idx_, buf + 2, ap1_p_->length - ap1_idx_);
-        ap1_idx_ += ap1_p_->length - ap1_idx_;
+    if (ap1_idx_ < ap1_packet_buf_->length) {
+      if (ap1_idx_ + len - 2 > ap1_packet_buf_->length) {
+        memcpy(ap1_packet_buf_->data + ap1_idx_, buf + 2, ap1_packet_buf_->length - ap1_idx_);
+        ap1_idx_ += ap1_packet_buf_->length - ap1_idx_;
         // TODO: check for src/dst match, dst 0 = broadcast
-        (*rx_handler_)(ap1_p_);
+        (*rx_handler_)(ap1_packet_buf_);
       } else {
         // copy out 7 data bytes
-        memcpy(ap1_p_->data + ap1_idx_, buf + 2, len - 2);
+        memcpy(ap1_packet_buf_->data + ap1_idx_, buf + 2, len - 2);
         ap1_idx_ += len - 2;
       }
     }
