@@ -43,6 +43,8 @@ class Nrf24ap1 {
   uint8_t msg_type_;
   uint8_t *msg_buf_;
   int msg_idx_;
+  struct ap1_packet *ap1_p_;
+  int ap1_idx_;
   Serial *ap1_;
   InterruptIn *cts_pin_;
   std::list<int> channels_;

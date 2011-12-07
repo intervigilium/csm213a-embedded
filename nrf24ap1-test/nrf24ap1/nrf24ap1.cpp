@@ -150,21 +150,36 @@ void Nrf24ap1::CloseChannel(int chan_id) {
 }
 
 int Nrf24ap1::Send(int chan_id, struct ap1_packet *packet) {
-  struct ant_packet *packet = NULL;
-  int idx = 0;
-  for (int i = 0; i < (len + 7) / 8; i++) {
-    packet = create_ant_packet(9);
-    packet->type = MESG_BROADCAST_DATA_ID;
-    packet->data[0] = chan_id;
-    memset(packet, 0, sizeof(uint8_t) * packet->length);
-    for (int j = 1; j < 9; j++) {
-      // TODO: use memcpy instead here
-      packet->data[j] = buf[idx++];
-      if (idx >= len) {
-        break;
-      }
+  struct ant_packet *ant_packet = NULL;
+  int offset = 0;
+  int num_ant_packets = (packet->length + 7) / 8;
+
+  // send ap1_packet header data
+  ant_packet = create_ant_packet(9);
+  ant_packet->type = MESG_BROADCAST_DATA_ID;
+  ant_packet->data[0] = chan_id;
+  ant_packet->data[1] = AP1_PACKET_SYNC_0;
+  ant_packet->data[2] = AP1_PACKET_SYNC_1;
+  ant_packet->data[3] = (uint8_t)(packet->source & 0xFF00) >> 8;
+  ant_packet->data[4] = (uint8_t)(packet->source & 0x00FF);
+  ant_packet->data[5] = (uint8_t)(packet->destination & 0xFF00) >> 8;
+  ant_packet->data[6] = (uint8_t)(packet->destination & 0x00FF);
+  ant_packet->data[7] = (uint8_t)(packet->length & 0xFF00) >> 8;
+  ant_packet->data[8] = (uint8_t)(packet->length & 0x00FF);
+  QueueMessage(ant_packet);
+
+  // send ap1_packet data
+  for (int i = 0; i < num_ant_packets; i++) {
+    ant_packet = create_ant_packet(9);
+    ant_packet->type = MESG_BROADCAST_DATA_ID;
+    ant_packet->data[0] = chan_id;
+    if (i == num_ant_packets - 1) {
+      memcpy(ant_packet->data, packet->data + offset, packet->length % 8); 
+    } else {
+      memcpy(ant_packet->data, packet->data + offset, 8);
+      offset += 8;
     }
-    QueueMessage(packet);
+    QueueMessage(ant_packet);
   }
   return 0;
 }
@@ -208,15 +223,34 @@ void Nrf24ap1::OnAp1Rx() {
 }
 
 void Nrf24ap1::HandleAp1Message(uint8_t type, uint8_t *buf, int len) {
-  uint8_t channel;
-  uint8_t response_type;
-  uint8_t response_code;
-  struct ant_packet *p = NULL;
+  uint8_t channel, response_type, response_code;
+  uint8_t ap1_header0, ap1_header1;
+  struct ant_packet *ant_p = NULL;
   switch (type) {
     case MESG_BROADCAST_DATA_ID:
     case MESG_ACKNOWLEDGED_DATA_ID:
     case MESG_BURST_DATA_ID:
-      (*rx_handler_)(type, buf, len);
+      ap1_header0 = buf[1];
+      ap1_header1 = buf[2];
+      if (ap1_header0 == AP1_PACKET_SYNC_0 &&
+          ap1_header1 == AP1_PACKET_SYNC_1) {
+        free_ap1_packet(ap1_p_);
+        ap1_p_ = create_ap1_packet((buf[7] << 8) | buf[8]);
+        ap1_p_->source = (buf[3] << 8) | buf[4];
+        ap1_p_->destination = (buf[5] << 8) | buf[6];
+        ap1_idx_ = 0;
+      } else {
+        if (ap1_idx_ < ap1_p_->length) {
+          if (ap1_idx_ + len > ap1_p_->length) {
+            memcpy(ap1_->data + ap1_idx_, buf, ap1_p_->length - ap1_idx_);
+            ap1_idx_ += ap1_p_->length - ap1_idx_;
+            (*rx_handler_)(ap1_p_);
+          } else {
+            memcpy(ap1_->data + ap1_idx_, buf, len);
+            ap1_idx_ += len;
+          }
+        }
+      }
       break;
     case MESG_RESPONSE_EVENT_ID:
       channel = buf[0];
@@ -225,26 +259,28 @@ void Nrf24ap1::HandleAp1Message(uint8_t type, uint8_t *buf, int len) {
       switch (response_code) {
         case RESPONSE_NO_ERROR:
         case EVENT_TX:
-          p = control_queue_.front();
-          if (p->type == response_type) {
+          ant_p = control_queue_.front();
+          if (ant_p->type == response_type) {
             control_queue_.pop_front();
-            free_ant_packet(p);
+            free_ant_packet(ant_p);
             if (!control_queue_.empty()) {
-              p = control_queue_.front();
-              send_packet(ap1_, p);
-              if (p->type == MESG_BROADCAST_DATA_ID ||
-                  p->type == MESG_SYSTEM_RESET_ID) {
+              ant_p = control_queue_.front();
+              send_packet(ap1_, ant_p);
+              if (ant_p->type == MESG_BROADCAST_DATA_ID ||
+                  ant_p->type == MESG_SYSTEM_RESET_ID) {
                 // broadcast and reset don't ACK
                 control_queue_.pop_front();
-                free_ant_packet(p);
+                free_ant_packet(ant_p);
               }
             }
           } else {
-            printf("ERROR: Response type: 0x%x, expecting: 0x%x\n\r", response_type, p->type);
+            printf("ERROR: Response type: 0x%x, expecting: 0x%x\n\r",
+                   response_type, ant_p->type);
           }
           break;
         default:
-          printf("ERROR: Received response 0x%x for 0x%x\n\r", response_code, p->type);
+          printf("ERROR: Received response 0x%x for 0x%x\n\r",
+                 response_code, ant_p->type);
           break;
       }
       break;
