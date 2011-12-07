@@ -12,10 +12,13 @@
 
 namespace Nrf24ap1 {
 
+#define AP1_PACKET_SYNC_0 0xAF
+#define AP1_PACKET_SYNC_1 0xED
+
 struct ap1_packet {
   uint16_t source;
   uint16_t destination;
-  uint32_t length;
+  uint16_t length;
   uint8_t *data;
 }
 
