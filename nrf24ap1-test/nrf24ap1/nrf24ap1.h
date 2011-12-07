@@ -22,10 +22,9 @@ class Nrf24ap1 {
   void SetReceiveHandler(void (*handler)(uint8_t, uint8_t *, int));
   ~Nrf24ap1();
 
- protected:
-  void HandleMessage();
-
  private:
+  void HandleAp1Message(uint8_t type, uint8_t *buf, int len);
+  void OnAp1Rx();
   void QueueMessage(struct ant_packet *packet);
 
   uint16_t dev_id_;

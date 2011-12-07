@@ -108,7 +108,7 @@ Nrf24ap1::Nrf24ap1(PinName tx, PinName rx, PinName ctx) {
   dev_id_ = (uint16_t)(rand() % 0xFF);
   cts_pin_ = new InterruptIn(ctx);
   ap1_ = new Serial(tx, rx);
-  ap1_->attach(this, &Nrf24ap1::HandleMessage, Serial::RxIrq);
+  ap1_->attach(this, &Nrf24ap1::OnAp1Rx, Serial::RxIrq);
   ap1_->baud(NRF24AP1_BAUD);
   ap1_->format(8, Serial::None, 1);
   msg_buf_ = NULL;
@@ -169,7 +169,7 @@ void Nrf24ap1::SetReceiveHandler(void (*handler)(uint8_t, uint8_t *, int)) {
   rx_handler_ = handler;
 }
 
-void Nrf24ap1::HandleMessage() {
+void Nrf24ap1::OnAp1Rx() {
   uint8_t c;
 
   while (ap1_->readable()) {
@@ -192,8 +192,7 @@ void Nrf24ap1::HandleMessage() {
           break;
         default:
           if (msg_idx_ == 3 + msg_len_) {
-            // TODO: check/handle event messages before running callback
-            (*rx_handler_)(msg_type_, msg_buf_, msg_len_);
+            HandleAp1Message(msg_type_, msg_buf_, msg_len_);
           } else if (msg_idx_ < 3 + msg_len_) {
             msg_buf_[msg_idx_ - 3] = c;
             msg_idx_++;
@@ -201,6 +200,53 @@ void Nrf24ap1::HandleMessage() {
           break;
       }
     }
+  }
+}
+
+void Nrf24ap1::HandleAp1Message(uint8_t type, uint8_t *buf, int len) {
+  uint8_t channel;
+  uint8_t response_type;
+  uint8_t response_code;
+  struct ant_packet *p = NULL;
+  switch (type) {
+    case MESG_BROADCAST_DATA_ID:
+    case MESG_ACKNOWLEDGED_DATA_ID:
+    case MESG_BURST_DATA_ID:
+      (*rx_handler_)(type, buf, len);
+      break;
+    case MESG_RESPONSE_EVENT_ID:
+      channel = buf[0];
+      response_type = buf[1];
+      response_code = buf[2];
+      switch (response_code) {
+        case RESPONSE_NO_ERROR:
+        case EVENT_TX:
+          p = control_queue_.front();
+          if (p->type == response_type) {
+            control_queue_.pop_front();
+            free_ant_packet(p);
+            if (!control_queue_.empty()) {
+              p = control_queue_.front();
+              send_packet(ap1_, p);
+              if (p->type == MESG_BROADCAST_DATA_ID ||
+                  p->type == MESG_SYSTEM_RESET_ID) {
+                // broadcast and reset don't ACK
+                control_queue_.pop_front();
+                free_ant_packet(p);
+              }
+            }
+          } else {
+            printf("ERROR: Response type: 0x%x, expecting: 0x%x\n\r", response_type, p->type);
+          }
+          break;
+        default:
+          printf("ERROR: Received response 0x%x for 0x%x\n\r", response_code, p->type);
+          break;
+      }
+      break;
+    default:
+      printf("INFO: Received message type: 0x%x\n\r", type);
+      break;
   }
 }
 
