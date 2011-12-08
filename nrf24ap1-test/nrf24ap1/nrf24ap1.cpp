@@ -224,7 +224,7 @@ void Nrf24ap1::OnAp1Rx() {
       default:
         if (msg_idx_ == 3 + msg_len_) {
           debug("MSG_HANDLER: end at %d of %d", msg_idx_, 3 + msg_len_);
-          checksum = get_checksum(msg_buf_ + 3, msg_len_, msg_type_);
+          checksum = get_checksum(msg_buf_, msg_len_, msg_type_);
           if (checksum != c) {
             printf("ERROR: Expected checksum: 0x%x, got: 0x%x\n\r", c, checksum);
           }
