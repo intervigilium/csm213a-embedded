@@ -209,43 +209,47 @@ void Nrf24ap1::OnAp1Rx() {
   uint8_t c;
   while (ap1_->readable()) {
     c = ap1_->getc();
-    printf("MESSAGE_HANDLER GOT: 0x%x\n\r", c);
-    if (c == MESG_TX_SYNC) {
-      free(msg_buf_);
-      msg_idx_ = 1;
-    } else {
-      switch (msg_idx_) {
-        case 1:
-          msg_len_ = c;
-          msg_buf_ = (uint8_t *) malloc(sizeof(uint8_t) * msg_len_);
-          memset(msg_buf_, 0, sizeof(uint8_t) * msg_len_);
-          msg_idx_++;
-          break;
-        case 2:
-          msg_type_ = c;
-          msg_idx_++;
-          break;
-        default:
-          if (msg_idx_ == 3 + msg_len_) {
-            switch (msg_type_) {
-              case MESG_BROADCAST_DATA_ID:
-              case MESG_ACKNOWLEDGED_DATA_ID:
-              case MESG_BURST_DATA_ID:
-                HandleAp1DataMessage(msg_type_, msg_buf_, msg_len_);
-                break;
-              case MESG_RESPONSE_EVENT_ID:
-                HandleAp1EventMessage(msg_type_, msg_buf_, msg_len_);
-                break;
-              default:
-                printf("INFO: Received message type: 0x%x\n\r", msg_type_);
-                break;
-            }
-          } else if (msg_idx_ < 3 + msg_len_) {
-            msg_buf_[msg_idx_ - 3] = c;
-            msg_idx_++;
+    switch (msg_idx_) {
+      case 1:
+        printf("MSG_HANDLER: len 0x%x\n\r", c);
+        msg_len_ = c;
+        msg_buf_ = (uint8_t *) malloc(sizeof(uint8_t) * msg_len_);
+        memset(msg_buf_, 0, sizeof(uint8_t) * msg_len_);
+        msg_idx_++;
+        break;
+      case 2:
+        printf("MSG_HANDLER: type 0x%x\n\r", c);
+        msg_type_ = c;
+        msg_idx_++;
+        break;
+      default:
+        if (msg_idx_ == 3 + msg_len_) {
+          printf("MSG_HANDLER: end at %d of %d\n\r", msg_idx_, 3 + msg_len_);
+          // TODO: verify checksum
+          switch (msg_type_) {
+            case MESG_BROADCAST_DATA_ID:
+            case MESG_ACKNOWLEDGED_DATA_ID:
+            case MESG_BURST_DATA_ID:
+              HandleAp1DataMessage(msg_type_, msg_buf_, msg_len_);
+              break;
+            case MESG_RESPONSE_EVENT_ID:
+              HandleAp1EventMessage(msg_type_, msg_buf_, msg_len_);
+              break;
+             default:
+              printf("INFO: Received message type: 0x%x\n\r", msg_type_);
+              break;
           }
-          break;
-      }
+          msg_idx_++;
+        } else if (msg_idx_ < 3 + msg_len_) {
+          printf("MSG_HANDLER: copying 0x%x to %d\n\r", c, msg_idx_ - 3);
+          msg_buf_[msg_idx_ - 3] = c;
+          msg_idx_++;
+        } else if (c == MESG_TX_SYNC) {
+          printf("MSG_HANDLER: sync 0x%x\n\r", c);
+          free(msg_buf_);
+          msg_idx_ = 1;
+        }
+        break;
     }
   }
 }
@@ -276,64 +280,47 @@ void Nrf24ap1::HandleAp1DataMessage(uint8_t type, uint8_t *buf, int len) {
 }
 
 void Nrf24ap1::HandleAp1EventMessage(uint8_t type, uint8_t *buf, int len) {
-  struct ant_packet *ant_p = NULL;
+  struct ant_packet *p = NULL;
   uint8_t channel = buf[0];
   uint8_t response_type = buf[1];
   uint8_t response_code = buf[2];
+  printf("INFO: response 0x%x for message 0x%x\n\r", response_code, response_type);
   switch (response_code) {
     case RESPONSE_NO_ERROR:
     case EVENT_TX:
-      if (control_queue_.empty()) {
-        printf("ERROR: No message in queue\n\r");
-        break;
-      } else {
-        ant_p = control_queue_.front();
-        switch (ant_p->type) {
-          case MESG_SYSTEM_RESET_ID:
-          case MESG_BROADCAST_DATA_ID:
-          case MESG_ACKNOWLEDGED_DATA_ID:
-          case MESG_BURST_DATA_ID:
-            control_queue_.pop_front();
-            free_ant_packet(ant_p);
+      if (!control_queue_.empty()) {
+        p = control_queue_.front();
+        control_queue_.pop_front();
+        switch (response_type) {
+          case EVENT_RF:
+            // for all RF events, like broadcast
+            if (p->type == MESG_BROADCAST_DATA_ID) {
+              SendNextAntMessage();
+            }
             break;
           default:
+            if (p->type == response_type) {
+              SendNextAntMessage();
+            } else {
+              printf("ERROR: Response type: 0x%x, expecting: 0x%x\n\r",
+                     response_type, p->type);
+            }
             break;
         }
-      }
-      ant_p = control_queue_.front();
-      if (ant_p->type == response_type) {
-        control_queue_.pop_front();
-        free_ant_packet(ant_p);
-        if (!control_queue_.empty()) {
-          ant_p = control_queue_.front();
-          send_packet(ap1_, ant_p);
-          if (ant_p->type == MESG_BROADCAST_DATA_ID ||
-              ant_p->type == MESG_SYSTEM_RESET_ID) {
-            // broadcast and reset don't ACK
-            control_queue_.pop_front();
-            free_ant_packet(ant_p);
-          }
-        }
-      } else {
-        printf("ERROR: Response type: 0x%x, expecting: 0x%x\n\r",
-               response_type, ant_p->type);
+        free_ant_packet(p);
       }
       break;
     default:
       printf("ERROR: Received response 0x%x for 0x%x\n\r",
-             response_code, ant_p->type);
+             response_code, response_type);
       break;
   }
 }
 
 void Nrf24ap1::QueueMessage(struct ant_packet *packet) {
-  if (control_queue_.empty()) {
-    printf("SEND: packet type: 0x%x\n\r", packet->type);
-    control_queue_.push_back(packet);
-    send_packet(ap1_, packet);
-  } else {
-    printf("QUEUE: packet type: 0x%x\n\r", packet->type);
-    control_queue_.push_back(packet);
+  control_queue_.push_back(packet);
+  if (control_queue_.size() == 1) {
+    SendNextAntMessage();
   }
 }
 
@@ -342,7 +329,13 @@ void Nrf24ap1::SendNextAntMessage() {
   if (!control_queue_.empty()) {
     p = control_queue_.front();
     printf("SEND: next packet type: 0x%x\n\r", p->type);
-    send_packet(ap1_, p);
+    if (p->type == MESG_SYSTEM_RESET_ID) {
+      control_queue_.pop_front();
+      send_packet(ap1_, p);
+      free_ant_packet(p);
+    } else {
+      send_packet(ap1_, p);
+    }
   }
 }
 
