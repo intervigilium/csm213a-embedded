@@ -210,7 +210,7 @@ int Nrf24ap1::Send(int chan_id, struct ap1_packet *p) {
     ant_packet->data[0] = chan_id;
     ant_packet->data[1] = AP1_PACKET_DATA_ID;
     if (i == num_ant_packets - 1) {
-      memcpy(ant_packet->data + 2, p->data + offset, p->length % 7);
+      memcpy(ant_packet->data + 2, p->data + offset, p->length - offset);
     } else {
       memcpy(ant_packet->data + 2, p->data + offset, 7);
       offset += 7;
