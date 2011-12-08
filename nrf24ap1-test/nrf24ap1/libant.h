@@ -50,7 +50,7 @@
 
 #define DEFAULT_NETWORK_NUMBER          0x01
 #define DEFAULT_TRANSMISSION_TYPE       0x01
-#define DEFAULT_DEVICE_TYPE_ID          0xFD
+#define DEFAULT_DEVICE_TYPE_ID          0xfd
 #define DEFAULT_CHANNEL_FREQ            0x66
 #define DEFAULT_CHANNEL_PERIOD          0x1f86
 #define RX_DUPLEX_CHANNEL_TYPE          0x00
