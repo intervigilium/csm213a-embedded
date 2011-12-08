@@ -337,6 +337,15 @@ void Nrf24ap1::QueueMessage(struct ant_packet *packet) {
   }
 }
 
+void Nrf24ap1::SendNextAntMessage() {
+  struct ant_packet *p = NULL;
+  if (!control_queue_.empty()) {
+    p = control_queue_.front();
+    printf("SEND: next packet type: 0x%x\n\r", p->type);
+    send_packet(ap1_, p);
+  }
+}
+
 Nrf24ap1::~Nrf24ap1() {
   delete ap1_;
   delete cts_pin_;

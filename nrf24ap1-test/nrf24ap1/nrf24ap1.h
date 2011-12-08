@@ -37,6 +37,7 @@ class Nrf24ap1 {
   void HandleAp1EventMessage(uint8_t type, uint8_t *buf, int len);
   void OnAp1Rx();
   void QueueMessage(struct ant_packet *packet);
+  void SendNextAntMessage();
 
   uint16_t dev_id_;
   uint8_t msg_len_;
