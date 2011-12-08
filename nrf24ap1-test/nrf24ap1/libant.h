@@ -1,6 +1,7 @@
 #ifndef LIBANT_H_
 #define LIBANT_H_
 
+#define EVENT_RF                        0x01
 #define EVENT_RX_ACKNOWLEDGED           0x9b
 #define EVENT_RX_BROADCAST              0x9a
 #define EVENT_RX_BURST_PACKET           0x9c
