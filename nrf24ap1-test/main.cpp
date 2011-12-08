@@ -68,5 +68,8 @@ int main() {
   } else {
     do_slave(&ap1);
   }
+  while (1) {
+    wait_ms(250);
+  }
   return 0;
 }
