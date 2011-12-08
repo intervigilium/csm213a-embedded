@@ -62,6 +62,26 @@ uint8_t get_checksum(uint8_t *buf, int len, uint8_t type) {
   return res;
 }
 
+uint8_t get_next_sequence_number(uint8_t seq) {
+  switch (seq) {
+    case 0x00:
+      // 0000 0000 -> 0010 0000
+      return 0x20;
+    case 0x20:
+      // 0010 0000 -> 0100 0000
+      return 0x40;
+    case 0x40:
+      // 0100 0000 -> 0110 0000
+      return 0x60;
+    case 0x60:
+      // 0110 0000 -> 0010 0000
+      return 0x20;
+    default:
+      // should never happen
+      return 0x00;
+  }
+}
+
 void send_packet(Serial *port, struct ant_packet *p) {
   uint8_t checksum = get_checksum(p->data, p->length, p->type);
   port->putc(MESG_TX_SYNC);
@@ -211,6 +231,46 @@ int Nrf24ap1::Broadcast(int chan_id, struct ap1_packet *p) {
     ant_packet->data[0] = chan_id;
     ant_packet->data[1] = AP1_PACKET_DATA_ID;
     if (i == num_ant_packets - 1) {
+      memcpy(ant_packet->data + 2, p->data + offset, p->length - offset);
+    } else {
+      memcpy(ant_packet->data + 2, p->data + offset, 7);
+      offset += 7;
+    }
+    QueueMessage(ant_packet);
+  }
+  return 0;
+}
+
+int Nrf24ap1::BurstSend(int chan_id, struct ap1_packet *p) {
+  struct ant_packet *ant_packet = NULL;
+  uint8_t seq = 0;
+  int offset = 0;
+  int num_ant_packets = (p->length + 7) / 8;
+
+  // send ap1_packet header data
+  ant_packet = create_ant_packet(9);
+  ant_packet->type = MESG_BURST_DATA_ID;
+  ant_packet->data[0] = seq | chan_id;
+  ant_packet->data[1] = AP1_PACKET_SYNC_ID;
+  ant_packet->data[2] = 0;
+  ant_packet->data[3] = (uint8_t)(p->source & 0xFF00) >> 8;
+  ant_packet->data[4] = (uint8_t)(p->source & 0x00FF);
+  ant_packet->data[5] = (uint8_t)(p->destination & 0xFF00) >> 8;
+  ant_packet->data[6] = (uint8_t)(p->destination & 0x00FF);
+  ant_packet->data[7] = (uint8_t)(p->length & 0xFF00) >> 8;
+  ant_packet->data[8] = (uint8_t)(p->length & 0x00FF);
+  QueueMessage(ant_packet);
+
+  // send ap1_packet data
+  for (int i = 0; i < num_ant_packets; i++) {
+    seq = get_next_sequence_number(seq);
+    ant_packet = create_ant_packet(9);
+    ant_packet->type = MESG_ACKNOWLEDGED_DATA_ID;
+    ant_packet->data[0] = seq | chan_id;
+    ant_packet->data[1] = AP1_PACKET_DATA_ID;
+    if (i == num_ant_packets - 1) {
+      // set most significant bit to 1 to signify last packet
+      ant_packet->data[0] |= 0x80;
       memcpy(ant_packet->data + 2, p->data + offset, p->length - offset);
     } else {
       memcpy(ant_packet->data + 2, p->data + offset, 7);

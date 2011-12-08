@@ -29,6 +29,7 @@ class Nrf24ap1 {
   int OpenChannel(int chan_id, int chan_type);
   void CloseChannel(int chan_id);
   int Broadcast(int chan_id, struct ap1_packet *p);
+  int BurstSend(int chan_id, struct ap1_packet *p);
   int Send(int chan_id, struct ap1_packet *p);
   void SetReceiveHandler(void (*handler)(struct ap1_packet *));
   ~Nrf24ap1();
