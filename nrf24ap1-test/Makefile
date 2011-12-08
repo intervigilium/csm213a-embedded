@@ -13,10 +13,10 @@ LINKER_SCRIPT = mbed-beta/LPC1768/GCC_CS/LPC1768.ld
 ###############################################################################
 CC = $(GCC_BIN)arm-none-eabi-gcc
 CPP = $(GCC_BIN)arm-none-eabi-g++
-CC_FLAGS = $(CFLAGS) -c -Os -fno-common -fmessage-length=0 -Wall -fno-exceptions -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections
+CC_FLAGS = -c -Os -fno-common -fmessage-length=0 -Wall -fno-exceptions -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections
 ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++98
-CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_CS -DNDEBUG
+CC_SYMBOLS = $(CFLAGS) -DTARGET_LPC1768 -DTOOLCHAIN_GCC_CS
 
 
 AS = $(GCC_BIN)arm-none-eabi-as
