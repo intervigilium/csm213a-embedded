@@ -230,20 +230,17 @@ void Nrf24ap1::OnAp1Rx() {
     c = ap1_->getc();
     switch (msg_idx_) {
       case 1:
-        debug("MSG_HANDLER: len 0x%x", c);
         msg_len_ = c;
         msg_buf_ = (uint8_t *) malloc(sizeof(uint8_t) * msg_len_);
         memset(msg_buf_, 0, sizeof(uint8_t) * msg_len_);
         msg_idx_++;
         break;
       case 2:
-        debug("MSG_HANDLER: type 0x%x", c);
         msg_type_ = c;
         msg_idx_++;
         break;
       default:
         if (msg_idx_ == 3 + msg_len_) {
-          debug("MSG_HANDLER: end at %d of %d", msg_idx_, 3 + msg_len_);
           checksum = get_checksum(msg_buf_, msg_len_, msg_type_);
           if (checksum != c) {
             printf("ERROR: Expected checksum: 0x%x, got: 0x%x\n\r", c, checksum);
@@ -263,11 +260,9 @@ void Nrf24ap1::OnAp1Rx() {
           }
           msg_idx_++;
         } else if (msg_idx_ < 3 + msg_len_) {
-          debug("MSG_HANDLER: copying 0x%x to %d", c, msg_idx_ - 3);
           msg_buf_[msg_idx_ - 3] = c;
           msg_idx_++;
         } else if (c == MESG_TX_SYNC) {
-          debug("MSG_HANDLER: sync 0x%x", c);
           free(msg_buf_);
           msg_idx_ = 1;
         }
@@ -279,7 +274,6 @@ void Nrf24ap1::OnAp1Rx() {
 void Nrf24ap1::HandleAp1DataMessage(uint8_t type, uint8_t *buf, int len) {
   uint8_t channel = buf[0];
   uint8_t ap1_packet_id = buf[1];
-  debug("INFO: data message 0x%x, id: 0x%x", type, ap1_packet_id);
   if (ap1_packet_id == AP1_PACKET_SYNC_ID) {
     free_ap1_packet(ap1_packet_buf_);
     ap1_packet_buf_ = create_ap1_packet((buf[7] << 8) | buf[8]);
