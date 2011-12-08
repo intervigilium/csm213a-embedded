@@ -34,8 +34,8 @@ void on_slave_receive(struct ap1_packet *p) {
 
 void do_master(Nrf24ap1::Nrf24ap1 *ap1) {
   printf("\n\r\n\rMASTER\n\r");
-  struct ap1_packet *p = create_ap1_packet(7);
-  sprintf((char *) p->data, "ping!!");
+  struct ap1_packet *p = create_ap1_packet(13);
+  sprintf((char *) p->data, "pingpingping");
   ap1->SetReceiveHandler(&on_master_receive);
   ap1->OpenChannel(CHANNEL_ID, TX_DUPLEX_CHANNEL_TYPE);
   while (1) {
