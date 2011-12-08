@@ -38,8 +38,16 @@ void free_ap1_packet(struct ap1_packet *p) {
   free(p);
 }
 
+void print_ant_packet(struct ant_packet *p) {
+  printf("ANT: ");
+  for (int i = 0; i < p->length; i++) {
+    printf("%x", p->data[i]);
+  }
+  printf("\n\r");
+}
+
 void print_ap1_packet(struct ap1_packet *p) {
-  printf("PACKET: ");
+  printf("AP1: ");
   for (int i = 0; i < p->length; i++) {
     printf("%c", p->data[i]);
   }
