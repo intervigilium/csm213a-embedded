@@ -270,7 +270,7 @@ void Nrf24ap1::HandleAp1DataMessage(uint8_t type, uint8_t *buf, int len) {
     ap1_idx_ = 0;
   } else if (ap1_packet_id == AP1_PACKET_DATA_ID) {
     if (ap1_packet_buf_ && ap1_idx_ < ap1_packet_buf_->length) {
-      if (ap1_idx_ + len - 2 > ap1_packet_buf_->length) {
+      if (ap1_idx_ + len - 2 >= ap1_packet_buf_->length) {
         memcpy(ap1_packet_buf_->data + ap1_idx_, buf + 2, ap1_packet_buf_->length - ap1_idx_);
         ap1_idx_ += ap1_packet_buf_->length - ap1_idx_;
         // TODO: check for src/dst match, dst 0 = broadcast
@@ -280,6 +280,8 @@ void Nrf24ap1::HandleAp1DataMessage(uint8_t type, uint8_t *buf, int len) {
         memcpy(ap1_packet_buf_->data + ap1_idx_, buf + 2, len - 2);
         ap1_idx_ += len - 2;
       }
+    } else {
+      // drop data until we can sync
     }
   }
 }
