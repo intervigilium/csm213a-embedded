@@ -36,6 +36,14 @@ void free_ap1_packet(struct ap1_packet *packet) {
   free(packet);
 }
 
+void print_ap1_packet(struct ap1_packet *p) {
+  printf("PACKET: ");
+  for (int i = 0; i < p->length; i++) {
+    printf("%c", p->data[i]);
+  }
+  printf("\n\r");
+}
+
 uint8_t get_checksum(uint8_t *buf, int len, uint8_t type) {
   uint8_t res = MESG_TX_SYNC ^ len ^ type;
   for (int i = 0; i < len; i++) {
