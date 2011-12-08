@@ -38,6 +38,7 @@ void do_master(Nrf24ap1::Nrf24ap1 *ap1) {
   sprintf((char *) p->data, "pingpingping");
   ap1->SetReceiveHandler(&on_master_receive);
   ap1->OpenChannel(CHANNEL_ID, TX_DUPLEX_CHANNEL_TYPE);
+  ap1->OpenChannel(CHANNEL_ID + 1, RX_DUPLEX_CHANNEL_TYPE);
   while (1) {
     ap1->Send(CHANNEL_ID, p);
     wait_ms(250);
@@ -50,8 +51,10 @@ void do_slave(Nrf24ap1::Nrf24ap1 *ap1) {
   struct ap1_packet *p = create_ap1_packet(13);
   sprintf((char *) p->data, "pongpongpong");
   ap1->SetReceiveHandler(&on_slave_receive);
+  ap1->OpenChannel(CHANNEL_ID + 1, TX_DUPLEX_CHANNEL_TYPE);
   ap1->OpenChannel(CHANNEL_ID, RX_DUPLEX_CHANNEL_TYPE);
   while (1) {
+    ap1->Send(CHANNEL_ID + 1, p);
     wait_ms(250);
   }
   free_ap1_packet(p);
