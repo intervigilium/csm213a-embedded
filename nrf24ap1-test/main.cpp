@@ -18,7 +18,7 @@ struct ap1_packet * create_ap1_packet(int len) {
 }
 
 void free_ap1_packet(struct ap1_packet *p) {
-  if (p->data) {
+  if (p && p->data) {
     free(p->data);
   }
   free(p);

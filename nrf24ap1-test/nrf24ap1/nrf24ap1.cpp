@@ -30,7 +30,7 @@ struct ap1_packet * create_ap1_packet(int len) {
 }
 
 void free_ap1_packet(struct ap1_packet *packet) {
-  if (packet->data) {
+  if (packet && packet->data) {
     free(packet->data);
   }
   free(packet);
