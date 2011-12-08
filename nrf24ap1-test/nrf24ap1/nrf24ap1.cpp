@@ -184,7 +184,8 @@ void Nrf24ap1::CloseChannel(int chan_id) {
   channels_.remove(chan_id);
 }
 
-int Nrf24ap1::Send(int chan_id, struct ap1_packet *p) {
+int Nrf24ap1::Broadcast(int chan_id, struct ap1_packet *p) {
+  // TODO: make this broadcast the whole ap1_packet
   struct ant_packet *ant_packet = NULL;
   int offset = 0;
   int num_ant_packets = (p->length + 7) / 8;
@@ -207,6 +208,42 @@ int Nrf24ap1::Send(int chan_id, struct ap1_packet *p) {
   for (int i = 0; i < num_ant_packets; i++) {
     ant_packet = create_ant_packet(9);
     ant_packet->type = MESG_BROADCAST_DATA_ID;
+    ant_packet->data[0] = chan_id;
+    ant_packet->data[1] = AP1_PACKET_DATA_ID;
+    if (i == num_ant_packets - 1) {
+      memcpy(ant_packet->data + 2, p->data + offset, p->length - offset);
+    } else {
+      memcpy(ant_packet->data + 2, p->data + offset, 7);
+      offset += 7;
+    }
+    QueueMessage(ant_packet);
+  }
+  return 0;
+}
+
+int Nrf24ap1::Send(int chan_id, struct ap1_packet *p) {
+  struct ant_packet *ant_packet = NULL;
+  int offset = 0;
+  int num_ant_packets = (p->length + 7) / 8;
+
+  // send ap1_packet header data
+  ant_packet = create_ant_packet(9);
+  ant_packet->type = MESG_ACKNOWLEDGED_DATA_ID;
+  ant_packet->data[0] = chan_id;
+  ant_packet->data[1] = AP1_PACKET_SYNC_ID;
+  ant_packet->data[2] = 0;
+  ant_packet->data[3] = (uint8_t)(p->source & 0xFF00) >> 8;
+  ant_packet->data[4] = (uint8_t)(p->source & 0x00FF);
+  ant_packet->data[5] = (uint8_t)(p->destination & 0xFF00) >> 8;
+  ant_packet->data[6] = (uint8_t)(p->destination & 0x00FF);
+  ant_packet->data[7] = (uint8_t)(p->length & 0xFF00) >> 8;
+  ant_packet->data[8] = (uint8_t)(p->length & 0x00FF);
+  QueueMessage(ant_packet);
+
+  // send ap1_packet data
+  for (int i = 0; i < num_ant_packets; i++) {
+    ant_packet = create_ant_packet(9);
+    ant_packet->type = MESG_ACKNOWLEDGED_DATA_ID;
     ant_packet->data[0] = chan_id;
     ant_packet->data[1] = AP1_PACKET_DATA_ID;
     if (i == num_ant_packets - 1) {
