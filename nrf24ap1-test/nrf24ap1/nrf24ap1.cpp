@@ -69,12 +69,12 @@ struct ant_packet * get_unassign_channel_packet(int chan_id) {
   return packet;
 }
 
-struct ant_packet * get_set_channel_id_packet(int chan_id, uint16_t dev_id) {
+struct ant_packet * get_set_channel_id_packet(int chan_id) {
   struct ant_packet *packet = create_ant_packet(5);
   packet->type = MESG_CHANNEL_ID_ID;
   packet->data[0] = chan_id;
-  packet->data[1] = (uint8_t)(dev_id & 0x00FF);
-  packet->data[2] = (uint8_t)((dev_id & 0xFF00) >> 8);
+  packet->data[1] = (uint8_t)(MASTER_DEVICE_ID & 0x00FF);
+  packet->data[2] = (uint8_t)((MASTER_DEVICE_ID & 0xFF00) >> 8);
   packet->data[3] = DEFAULT_DEVICE_TYPE_ID;
   packet->data[4] = DEFAULT_TRANSMISSION_TYPE;
   return packet;
@@ -152,7 +152,7 @@ int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
     }
   }
   QueueMessage(get_assign_channel_packet(chan_id, chan_type));
-  QueueMessage(get_set_channel_id_packet(chan_id, dev_id_));
+  QueueMessage(get_set_channel_id_packet(chan_id));
   QueueMessage(get_open_channel_packet(chan_id));
   channels_.push_back(chan_id);
   return 0;
@@ -266,7 +266,7 @@ void Nrf24ap1::HandleAp1DataMessage(uint8_t type, uint8_t *buf, int len) {
     ap1_packet_buf_->destination = (buf[5] << 8) | buf[6];
     ap1_idx_ = 0;
   } else if (ap1_packet_id == AP1_PACKET_DATA_ID) {
-    if (ap1_idx_ < ap1_packet_buf_->length) {
+    if (ap1_packet_buf_ && ap1_idx_ < ap1_packet_buf_->length) {
       if (ap1_idx_ + len - 2 > ap1_packet_buf_->length) {
         memcpy(ap1_packet_buf_->data + ap1_idx_, buf + 2, ap1_packet_buf_->length - ap1_idx_);
         ap1_idx_ += ap1_packet_buf_->length - ap1_idx_;
