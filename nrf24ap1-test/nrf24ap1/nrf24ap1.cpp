@@ -34,9 +34,8 @@ void free_ap1_packet(struct ap1_packet *packet) {
   free(packet);
 }
 
-uint8_t get_checksum(uint8_t *buf, int len) {
-  uint8_t res = 0;
-
+uint8_t get_checksum(uint8_t *buf, int len, uint8_t type) {
+  uint8_t res = MESG_TX_SYNC ^ len ^ type;
   for (int i = 0; i < len; i++) {
     res ^= buf[i];
   }
@@ -44,12 +43,11 @@ uint8_t get_checksum(uint8_t *buf, int len) {
 }
 
 void send_packet(Serial *port, struct ant_packet *msg) {
-  uint8_t checksum = MESG_TX_SYNC ^ msg->length ^ msg->type;
+  uint8_t checksum = get_checksum(msg->data, msg->length, msg->type);
   port->putc(MESG_TX_SYNC);
   port->putc(msg->length);
   port->putc(msg->type);
   for (int i = 0; i < msg->length; i++) {
-    checksum ^= msg->data[i];
     port->putc(msg->data[i]);
   }
   port->putc(checksum);
@@ -207,7 +205,7 @@ void Nrf24ap1::SetReceiveHandler(void (*handler)(struct ap1_packet *)) {
 }
 
 void Nrf24ap1::OnAp1Rx() {
-  uint8_t c;
+  uint8_t c, checksum;
   while (ap1_->readable()) {
     c = ap1_->getc();
     switch (msg_idx_) {
@@ -226,7 +224,10 @@ void Nrf24ap1::OnAp1Rx() {
       default:
         if (msg_idx_ == 3 + msg_len_) {
           debug("MSG_HANDLER: end at %d of %d", msg_idx_, 3 + msg_len_);
-          // TODO: verify checksum
+          checksum = get_checksum(msg_buf_ + 3, msg_len_, msg_type_);
+          if (checksum != c) {
+            printf("ERROR: Expected checksum: 0x%x, got: 0x%x\n\r", c, checksum);
+          }
           switch (msg_type_) {
             case MESG_BROADCAST_DATA_ID:
             case MESG_ACKNOWLEDGED_DATA_ID:
