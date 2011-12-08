@@ -371,6 +371,7 @@ void Nrf24ap1::OnAp1Rx() {
 void Nrf24ap1::HandleAp1DataMessage(uint8_t type, uint8_t *buf, int len) {
   uint8_t channel = buf[0];
   uint8_t ap1_packet_id = buf[1];
+  debug("INFO: data message 0x%x: %s", type, buf);
   if (ap1_packet_id == AP1_PACKET_SYNC_ID) {
     free_ap1_packet(ap1_packet_buf_);
     ap1_packet_buf_ = create_ap1_packet((buf[7] << 8) | buf[8]);
