@@ -307,13 +307,16 @@ void Nrf24ap1::HandleAp1EventMessage(uint8_t type, uint8_t *buf, int len) {
   switch (response_code) {
     case RESPONSE_NO_ERROR:
     case EVENT_TX:
+    case EVENT_TRANSFER_TX_COMPLETED:
       if (!control_queue_.empty()) {
         p = control_queue_.front();
         control_queue_.pop_front();
         switch (response_type) {
           case EVENT_RF:
             // for all RF events, like broadcast
-            if (p->type == MESG_BROADCAST_DATA_ID) {
+            if (p->type == MESG_BROADCAST_DATA_ID ||
+                p->type == MESG_ACKNOWLEDGED_DATA_ID ||
+                p->type == MESG_BURST_DATA_ID) {
               SendNextAntMessage();
             }
             break;
