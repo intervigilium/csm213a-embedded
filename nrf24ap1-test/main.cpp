@@ -1,7 +1,11 @@
 #include "mbed.h"
 #include "nrf24ap1/nrf24ap1.h"
 
+#ifndef SLAVE
 #define IS_MASTER 1
+#else
+#define IS_MASTER 0
+#endif
 #define CHANNEL_ID 1
 #define NUM_ITERATIONS 2
 
