@@ -28,7 +28,7 @@ class Nrf24ap1 {
   void Reset();
   int OpenChannel(int chan_id, int chan_type);
   void CloseChannel(int chan_id);
-  int Send(int chan_id, struct ap1_packet *packet);
+  int Send(int chan_id, struct ap1_packet *p);
   void SetReceiveHandler(void (*handler)(struct ap1_packet *));
   ~Nrf24ap1();
 
@@ -36,7 +36,7 @@ class Nrf24ap1 {
   void HandleAp1DataMessage(uint8_t type, uint8_t *buf, int len);
   void HandleAp1EventMessage(uint8_t type, uint8_t *buf, int len);
   void OnAp1Rx();
-  void QueueMessage(struct ant_packet *packet);
+  void QueueMessage(struct ant_packet *p);
   void SendNextAntMessage();
 
   uint16_t dev_id_;

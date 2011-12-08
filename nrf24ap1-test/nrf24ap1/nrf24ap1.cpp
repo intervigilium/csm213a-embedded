@@ -9,31 +9,33 @@
 namespace {
 
 struct ant_packet * create_ant_packet(int len) {
-  struct ant_packet *packet = (struct ant_packet *) malloc(sizeof(struct ant_packet));
-  packet->data = (uint8_t *) malloc(sizeof(uint8_t) * len);
-  memset(packet->data, 0, sizeof(uint8_t) * len);
-  packet->length = len;
-  return packet;
+  struct ant_packet *p = (struct ant_packet *) malloc(sizeof(struct ant_packet));
+  p->data = (uint8_t *) malloc(sizeof(uint8_t) * len);
+  memset(p->data, 0, sizeof(uint8_t) * len);
+  p->length = len;
+  return p;
 }
 
-void free_ant_packet(struct ant_packet *packet) {
-  free(packet->data);
-  free(packet);
+void free_ant_packet(struct ant_packet *p) {
+  if (p) {
+    free(p->data);
+  }
+  free(p);
 }
 
 struct ap1_packet * create_ap1_packet(int len) {
-  struct ap1_packet *packet = (struct ap1_packet *) malloc(sizeof(struct ap1_packet));
-  packet->data = (uint8_t *) malloc(sizeof(uint8_t) * len);
-  memset(packet->data, 0, sizeof(uint8_t) * len);
-  packet->length = len;
-  return packet;
+  struct ap1_packet *p = (struct ap1_packet *) malloc(sizeof(struct ap1_packet));
+  p->data = (uint8_t *) malloc(sizeof(uint8_t) * len);
+  memset(p->data, 0, sizeof(uint8_t) * len);
+  p->length = len;
+  return p;
 }
 
-void free_ap1_packet(struct ap1_packet *packet) {
-  if (packet && packet->data) {
-    free(packet->data);
+void free_ap1_packet(struct ap1_packet *p) {
+  if (p) {
+    free(p->data);
   }
-  free(packet);
+  free(p);
 }
 
 void print_ap1_packet(struct ap1_packet *p) {
@@ -52,74 +54,74 @@ uint8_t get_checksum(uint8_t *buf, int len, uint8_t type) {
   return res;
 }
 
-void send_packet(Serial *port, struct ant_packet *msg) {
-  uint8_t checksum = get_checksum(msg->data, msg->length, msg->type);
+void send_packet(Serial *port, struct ant_packet *p) {
+  uint8_t checksum = get_checksum(p->data, p->length, p->type);
   port->putc(MESG_TX_SYNC);
-  port->putc(msg->length);
-  port->putc(msg->type);
-  for (int i = 0; i < msg->length; i++) {
-    port->putc(msg->data[i]);
+  port->putc(p->length);
+  port->putc(p->type);
+  for (int i = 0; i < p->length; i++) {
+    port->putc(p->data[i]);
   }
   port->putc(checksum);
 }
 
 struct ant_packet * get_assign_channel_packet(int chan_id, int chan_type) {
-  struct ant_packet *packet = create_ant_packet(3);
-  packet->type = MESG_ASSIGN_CHANNEL_ID;
-  packet->data[0] = chan_id;
-  packet->data[1] = chan_type;
-  packet->data[2] = DEFAULT_NETWORK_NUMBER;
-  return packet;
+  struct ant_packet *p = create_ant_packet(3);
+  p->type = MESG_ASSIGN_CHANNEL_ID;
+  p->data[0] = chan_id;
+  p->data[1] = chan_type;
+  p->data[2] = DEFAULT_NETWORK_NUMBER;
+  return p;
 }
 
 struct ant_packet * get_unassign_channel_packet(int chan_id) {
-  struct ant_packet *packet = create_ant_packet(1);
-  packet->type = MESG_UNASSIGN_CHANNEL_ID;
-  packet->data[0] = chan_id;
-  return packet;
+  struct ant_packet *p = create_ant_packet(1);
+  p->type = MESG_UNASSIGN_CHANNEL_ID;
+  p->data[0] = chan_id;
+  return p;
 }
 
 struct ant_packet * get_set_channel_id_packet(int chan_id) {
-  struct ant_packet *packet = create_ant_packet(5);
-  packet->type = MESG_CHANNEL_ID_ID;
-  packet->data[0] = chan_id;
-  packet->data[1] = (uint8_t)(MASTER_DEVICE_ID & 0x00FF);
-  packet->data[2] = (uint8_t)((MASTER_DEVICE_ID & 0xFF00) >> 8);
-  packet->data[3] = DEFAULT_DEVICE_TYPE_ID;
-  packet->data[4] = DEFAULT_TRANSMISSION_TYPE;
-  return packet;
+  struct ant_packet *p = create_ant_packet(5);
+  p->type = MESG_CHANNEL_ID_ID;
+  p->data[0] = chan_id;
+  p->data[1] = (uint8_t)(MASTER_DEVICE_ID & 0x00FF);
+  p->data[2] = (uint8_t)((MASTER_DEVICE_ID & 0xFF00) >> 8);
+  p->data[3] = DEFAULT_DEVICE_TYPE_ID;
+  p->data[4] = DEFAULT_TRANSMISSION_TYPE;
+  return p;
 }
 
 struct ant_packet * get_set_channel_rf_packet(int chan_id, uint8_t rf) {
-  struct ant_packet *packet = create_ant_packet(2);
-  packet->type = MESG_CHANNEL_RADIO_FREQ_ID;
-  packet->data[0] = chan_id;
-  packet->data[1] = rf;
-  return packet;
+  struct ant_packet *p = create_ant_packet(2);
+  p->type = MESG_CHANNEL_RADIO_FREQ_ID;
+  p->data[0] = chan_id;
+  p->data[1] = rf;
+  return p;
 }
 
 struct ant_packet * get_set_channel_period_packet(int chan_id, int period) {
   // period is 32768/period Hz
-  struct ant_packet *packet = create_ant_packet(3);
-  packet->type = MESG_CHANNEL_MESG_PERIOD_ID;
-  packet->data[0] = chan_id;
-  packet->data[1] = (uint8_t)(period & 0x00FF);
-  packet->data[2] = (uint8_t)((period & 0xFF00) >> 8);
-  return packet;
+  struct ant_packet *p = create_ant_packet(3);
+  p->type = MESG_CHANNEL_MESG_PERIOD_ID;
+  p->data[0] = chan_id;
+  p->data[1] = (uint8_t)(period & 0x00FF);
+  p->data[2] = (uint8_t)((period & 0xFF00) >> 8);
+  return p;
 }
 
 struct ant_packet * get_open_channel_packet(int chan_id) {
-  struct ant_packet *packet = create_ant_packet(1);
-  packet->type = MESG_OPEN_CHANNEL_ID;
-  packet->data[0] = chan_id;
-  return packet;
+  struct ant_packet *p = create_ant_packet(1);
+  p->type = MESG_OPEN_CHANNEL_ID;
+  p->data[0] = chan_id;
+  return p;
 }
 
 struct ant_packet * get_close_channel_packet(int chan_id) {
-  struct ant_packet *packet = create_ant_packet(1);
-  packet->type = MESG_CLOSE_CHANNEL_ID;
-  packet->data[0] = chan_id;
-  return packet;
+  struct ant_packet *p = create_ant_packet(1);
+  p->type = MESG_CLOSE_CHANNEL_ID;
+  p->data[0] = chan_id;
+  return p;
 }
 
 }
@@ -148,10 +150,10 @@ uint16_t Nrf24ap1::GetDeviceId() {
 }
 
 void Nrf24ap1::Reset() {
-  struct ant_packet *packet = create_ant_packet(1);
-  packet->type = MESG_SYSTEM_RESET_ID;
-  packet->data[0] = 0;
-  QueueMessage(packet);
+  struct ant_packet *p = create_ant_packet(1);
+  p->type = MESG_SYSTEM_RESET_ID;
+  p->data[0] = 0;
+  QueueMessage(p);
 }
 
 int Nrf24ap1::OpenChannel(int chan_id, int chan_type) {
@@ -174,10 +176,10 @@ void Nrf24ap1::CloseChannel(int chan_id) {
   channels_.remove(chan_id);
 }
 
-int Nrf24ap1::Send(int chan_id, struct ap1_packet *packet) {
+int Nrf24ap1::Send(int chan_id, struct ap1_packet *p) {
   struct ant_packet *ant_packet = NULL;
   int offset = 0;
-  int num_ant_packets = (packet->length + 7) / 8;
+  int num_ant_packets = (p->length + 7) / 8;
 
   // send ap1_packet header data
   ant_packet = create_ant_packet(9);
@@ -185,12 +187,12 @@ int Nrf24ap1::Send(int chan_id, struct ap1_packet *packet) {
   ant_packet->data[0] = chan_id;
   ant_packet->data[1] = AP1_PACKET_SYNC_ID;
   ant_packet->data[2] = 0;
-  ant_packet->data[3] = (uint8_t)(packet->source & 0xFF00) >> 8;
-  ant_packet->data[4] = (uint8_t)(packet->source & 0x00FF);
-  ant_packet->data[5] = (uint8_t)(packet->destination & 0xFF00) >> 8;
-  ant_packet->data[6] = (uint8_t)(packet->destination & 0x00FF);
-  ant_packet->data[7] = (uint8_t)(packet->length & 0xFF00) >> 8;
-  ant_packet->data[8] = (uint8_t)(packet->length & 0x00FF);
+  ant_packet->data[3] = (uint8_t)(p->source & 0xFF00) >> 8;
+  ant_packet->data[4] = (uint8_t)(p->source & 0x00FF);
+  ant_packet->data[5] = (uint8_t)(p->destination & 0xFF00) >> 8;
+  ant_packet->data[6] = (uint8_t)(p->destination & 0x00FF);
+  ant_packet->data[7] = (uint8_t)(p->length & 0xFF00) >> 8;
+  ant_packet->data[8] = (uint8_t)(p->length & 0x00FF);
   QueueMessage(ant_packet);
 
   // send ap1_packet data
@@ -200,9 +202,9 @@ int Nrf24ap1::Send(int chan_id, struct ap1_packet *packet) {
     ant_packet->data[0] = chan_id;
     ant_packet->data[1] = AP1_PACKET_DATA_ID;
     if (i == num_ant_packets - 1) {
-      memcpy(ant_packet->data + 2, packet->data + offset, packet->length % 7);
+      memcpy(ant_packet->data + 2, p->data + offset, p->length % 7);
     } else {
-      memcpy(ant_packet->data + 2, packet->data + offset, 7);
+      memcpy(ant_packet->data + 2, p->data + offset, 7);
       offset += 7;
     }
     QueueMessage(ant_packet);
@@ -332,8 +334,8 @@ void Nrf24ap1::HandleAp1EventMessage(uint8_t type, uint8_t *buf, int len) {
   }
 }
 
-void Nrf24ap1::QueueMessage(struct ant_packet *packet) {
-  control_queue_.push_back(packet);
+void Nrf24ap1::QueueMessage(struct ant_packet *p) {
+  control_queue_.push_back(p);
   if (control_queue_.size() == 1) {
     SendNextAntMessage();
   }
