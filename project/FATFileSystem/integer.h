@@ -24,7 +24,8 @@ typedef unsigned long	ULONG;
 typedef unsigned long	DWORD;
 
 /* Boolean type */
-typedef enum { FALSE = 0, TRUE } BOOL;
+#define FALSE 0
+#define TRUE 1
 
 #define _INTEGER
 #endif
