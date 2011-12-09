@@ -1,17 +1,17 @@
 
 /*
 Copyright (c) 2010 Donatien Garnier (donatiengar [at] gmail [dot] com)
- 
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
- 
+
 The above copyright notice and this permission notice shall be included in
 all copies or substantial portions of the Software.
- 
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,6 +30,7 @@ TCP Socket header file
 
 #include "core/net.h"
 #include "core/host.h"
+#include "if/net/nettcpsocket.h"
 //Essentially it is a safe interface to NetTcpSocket
 
 ///TCP Socket error codes
@@ -62,7 +63,8 @@ enum TCPSocketEvent
 };
 
 class NetTcpSocket;
-enum NetTcpSocketEvent;
+// TODO: no forward declarations of enum allowed by GCC
+//enum NetTcpSocketEvent;
 
 ///This is a simple TCP Socket class
 /**
@@ -78,25 +80,25 @@ protected:
 public:
   ///Closes if needed and destroys the socket
   ~TCPSocket(); //close()
-  
+
   ///Binds the socket to (local) host
   TCPSocketErr bind(const Host& me);
-  
+
   ///Starts listening
   TCPSocketErr listen();
-  
+
   ///Connects socket to host
   TCPSocketErr connect(const Host& host);
-  
+
   ///Accepts connection from client and gets connected socket
   TCPSocketErr accept(Host* pClient, TCPSocket** ppNewTcpSocket);
-  
+
   ///Sends data
   /*
   @return a negative error code or the number of bytes transmitted
   */
   int /*if < 0 : TCPSocketErr*/ send(const char* buf, int len);
-  
+
   ///Receives data
   /*
   @return a negative error code or the number of bytes received
@@ -114,35 +116,35 @@ public:
   @param pMethod : callback function
   */
   void setOnEvent( void (*pMethod)(TCPSocketEvent) );
-  
+
   class CDummy;
   ///Setups callback
   /**
   @param pItem : instance of class on which to execute the callback method
   @param pMethod : callback method
   */
-  template<class T> 
+  template<class T>
   void setOnEvent( T* pItem, void (T::*pMethod)(TCPSocketEvent) )
   {
     m_pCbItem = (CDummy*) pItem;
     m_pCbMeth = (void (CDummy::*)(TCPSocketEvent)) pMethod;
   }
-  
+
   ///Disables callback
-  void resetOnEvent(); 
-  
+  void resetOnEvent();
+
 protected:
   void onNetTcpSocketEvent(NetTcpSocketEvent e);
   TCPSocketErr checkInst();
 
 private:
   NetTcpSocket* m_pNetTcpSocket;
-  
+
   CDummy* m_pCbItem;
   void (CDummy::*m_pCbMeth)(TCPSocketEvent);
-  
+
   void (*m_pCb)(TCPSocketEvent);
-  
+
 };
 
 #endif

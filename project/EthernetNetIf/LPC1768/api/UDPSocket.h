@@ -1,17 +1,17 @@
 
 /*
 Copyright (c) 2010 Donatien Garnier (donatiengar [at] gmail [dot] com)
- 
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
- 
+
 The above copyright notice and this permission notice shall be included in
 all copies or substantial portions of the Software.
- 
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,6 +30,7 @@ UDP Socket header file
 
 #include "core/net.h"
 #include "core/host.h"
+#include "if/net/netudpsocket.h"
 //Essentially it is a safe interface to NetUdpSocket
 
 ///UDP Socket error codes
@@ -51,7 +52,8 @@ enum UDPSocketEvent //Only one event here for now, but keeps that model in case 
 };
 
 class NetUdpSocket;
-enum NetUdpSocketEvent;
+// TODO: no forward declaration of enum allowed by GCC
+//enum NetUdpSocketEvent;
 
 ///This is a simple UDP Socket class
 /**
@@ -62,20 +64,20 @@ class UDPSocket
 public:
   ///Creates a new socket
   UDPSocket();
-  
+
   ///Closes and destroys socket
   ~UDPSocket(); //close()
-  
+
   ///Binds the socket to local host or a multicast address
   UDPSocketErr bind(const Host& me);
-  
+
   ///Sends data
   /*
   @param pHost : host to send data to
   @return a negative error code or the number of bytes transmitted
   */
   int /*if < 0 : UDPSocketErr*/ sendto(const char* buf, int len, Host* pHost);
-  
+
   ///Receives data
   /*
   @param pHost : host from which this piece of data comes from
@@ -92,22 +94,22 @@ public:
   ///Setups callback
   /**
   @param pMethod : callback function
-  */  
+  */
   void setOnEvent( void (*pMethod)(UDPSocketEvent) );
-  
+
   class CDummy;
   ///Setups callback
   /**
   @param pItem : instance of class on which to execute the callback method
   @param pMethod : callback method
   */
-  template<class T> 
+  template<class T>
   void setOnEvent( T* pItem, void (T::*pMethod)(UDPSocketEvent) )
   {
     m_pCbItem = (CDummy*) pItem;
     m_pCbMeth = (void (CDummy::*)(UDPSocketEvent)) pMethod;
   }
-  
+
   ///Disables callback
   void resetOnEvent();
 
@@ -117,10 +119,10 @@ protected:
 
 private:
   NetUdpSocket* m_pNetUdpSocket;
-  
+
   CDummy* m_pCbItem;
   void (CDummy::*m_pCbMeth)(UDPSocketEvent);
-  
+
   void (*m_pCb)(UDPSocketEvent);
 
 };
