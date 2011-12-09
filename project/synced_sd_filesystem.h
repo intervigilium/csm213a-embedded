@@ -31,9 +31,11 @@ class SyncedSDFileSystem : public SDFileSystem {
    * @param cs   DigitalOut pin used as SD Card chip select
    * @param name The name used to access the virtual filesystem
    */
-  SyncedSDFileSystem(PinName mosi, PinName miso, PinName sclk, PinName cs, const char* name);
-  virtual void become_master();
-  virtual void connect_to_master();
+  SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi, PinName miso, PinName sclk, PinName cs, const char* name);
+
+  virtual int rename(const char *oldname, const char *newname);
+  virtual int mkdir(const char *name, mode_t mode);
+
   virtual int disk_initialize();
   virtual int disk_write(const char *buffer, int block_number);
   virtual int disk_read(char *buffer, int block_number);
@@ -48,12 +50,12 @@ class SyncedSDFileSystem : public SDFileSystem {
   virtual void master_broadcast_update(const char *buffer, int block_number);
   virtual int node_request_sync(char *block_checksums);
   virtual int node_request_write(char *buffer, int block_number);
-  virtual int node_request_update(int block_number, char *updated_buffer);
+  virtual int node_request_update(char *updated_buffer, int block_number);
 
  private:
   bool is_master_;
-  EthernetNetIf *eth;
-  list<IpAddr> nodes;
+  IpAddr address_;
+  list<IpAddr> nodes_;
 };
 
 #endif

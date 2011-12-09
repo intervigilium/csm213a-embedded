@@ -52,6 +52,10 @@ public:
      * @param name The name used to access the virtual filesystem
      */
     SDFileSystem(PinName mosi, PinName miso, PinName sclk, PinName cs, const char* name);
+
+    virtual int rename(const char *oldname, const char *newname);
+    virtual int mkdir(const char *name, mode_t mode);
+
     virtual int disk_initialize();
     virtual int disk_write(const char *buffer, int block_number);
     virtual int disk_read(char *buffer, int block_number);

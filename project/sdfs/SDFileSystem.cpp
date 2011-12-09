@@ -194,6 +194,16 @@ int SDFileSystem::initialise_card_v2() {
     return SDCARD_FAIL;
 }
 
+int SDFileSystem::rename(const char *oldname, const char *newname) {
+  // do nothing because this is broken?
+  return 0;
+}
+
+int SDFileSystem::mkdir(const char *name, mode_t mode) {
+  // do nothing because this is broken?
+  return 0;
+}
+
 int SDFileSystem::disk_initialize() {
 
     initialise_card();
