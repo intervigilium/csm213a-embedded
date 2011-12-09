@@ -3,10 +3,10 @@
 
 GCC_BIN = /opt/codesourcery/bin/
 PROJECT = cs213-project
-OBJECTS = main.o sdfs/SDFileSystem.o nrf24ap1/nrf24ap1.o synced_sd_filesystem.o lwip/HTTPClient/HTTPClient.o lwip/Core/NetServer.o lwip/Core/lwip_device.o lwip/Core/TCPListener.o lwip/Core/TCPConnection.o lwip/Core/TCPItem.o lwip/Core/arch/iputil.o lwip/Core/lwIP/netif/loopif.o lwip/Core/lwIP/netif/ethernetif.o lwip/Core/lwIP/netif/etharp.o lwip/Core/lwIP/core/stats.o lwip/Core/lwIP/core/sys.o lwip/Core/lwIP/core/init.o lwip/Core/lwIP/core/tcp.o lwip/Core/lwIP/core/tcp_out.o lwip/Core/lwIP/core/dns.o lwip/Core/lwIP/core/memp.o lwip/Core/lwIP/core/pbuf.o lwip/Core/lwIP/core/tcp_in.o lwip/Core/lwIP/core/udp.o lwip/Core/lwIP/core/netif.o lwip/Core/lwIP/core/mem.o lwip/Core/lwIP/core/raw.o lwip/Core/lwIP/core/dhcp.o lwip/Core/lwIP/core/ipv4/ip.o lwip/Core/lwIP/core/ipv4/ip_addr.o lwip/Core/lwIP/core/ipv4/ip_frag.o lwip/Core/lwIP/core/ipv4/icmp.o lwip/Core/lwIP/core/ipv4/inet.o lwip/Core/lwIP/core/ipv4/autoip.o lwip/Core/lwIP/core/ipv4/igmp.o lwip/Core/lwIP/core/ipv4/inet_chksum.o lwip/Core/lwIP/core/snmp/mib_structs.o lwip/Core/lwIP/core/snmp/msg_out.o lwip/Core/lwIP/core/snmp/msg_in.o lwip/Core/lwIP/core/snmp/mib2.o lwip/Core/lwIP/core/snmp/asn1_dec.o lwip/Core/lwIP/core/snmp/asn1_enc.o lwip/HTTPServer/HTTPServer.o
+OBJECTS = main.o sdfs/SDFileSystem.o nrf24ap1/nrf24ap1.o synced_sd_filesystem.o
 SYS_OBJECTS = ./mbed-beta/LPC1768/GCC_CS/startup_LPC17xx.o ./mbed-beta/LPC1768/GCC_CS/sys.o ./mbed-beta/LPC1768/GCC_CS/cmsis_nvic.o ./mbed-beta/LPC1768/GCC_CS/core_cm3.o ./mbed-beta/LPC1768/GCC_CS/system_LPC17xx.o ./FATFileSystem/LPC1768/FATFileSystem.ar
-INCLUDE_PATHS = -I./mbed-beta -I./mbed-beta/LPC1768 -I./mbed-beta/LPC1768/GCC_CS -I./sdfs -I./nrf24ap1 -I./FATFileSystem -I./FATFileSystem/LPC1768 -I./lwip -I./lwip/HTTPClient -I./lwip/Core -I./lwip/Core/arch -I./lwip/Core/lwIP -I./lwip/Core/lwIP/netif -I./lwip/Core/lwIP/core -I./lwip/Core/lwIP/core/ipv4 -I./lwip/Core/lwIP/core/snmp -I./lwip/Core/lwIP/include -I./lwip/Core/lwIP/include/ipv4 -I./lwip/Core/lwIP/include/ipv4/lwip -I./lwip/Core/lwIP/include/netif -I./lwip/Core/lwIP/include/lwip -I./lwip/HTTPServer -I./lwip/HTTPClient -I./lwip/Core -I./lwip/HTTPServer -I./lwip/Core/arch -I./lwip/Core/lwIP -I./lwip/Core/lwIP/netif -I./lwip/Core/lwIP/core -I./lwip/Core/lwIP/include -I./lwip/Core/lwIP/core/ipv4 -I./lwip/Core/lwIP/core/snmp -I./lwip/Core/lwIP/include/ipv4 -I./lwip/Core/lwIP/include/netif -I./lwip/Core/lwIP/include/lwip -I./lwip/Core/lwIP/include/ipv4/lwip
-LIBRARY_PATHS = -L./mbed-beta -L./mbed-beta/LPC1768 -L./mbed-beta/LPC1768/GCC_CS -L./sdfs -L./nrf24ap1 -L./FATFileSystem -L./FATFileSystem/LPC1768 -L./lwip -L./lwip/HTTPClient -L./lwip/Core -L./lwip/Core/arch -L./lwip/Core/lwIP -L./lwip/Core/lwIP/netif -L./lwip/Core/lwIP/core -L./lwip/Core/lwIP/core/ipv4 -L./lwip/Core/lwIP/core/snmp -L./lwip/Core/lwIP/include -L./lwip/Core/lwIP/include/ipv4 -L./lwip/Core/lwIP/include/ipv4/lwip -L./lwip/Core/lwIP/include/netif -L./lwip/Core/lwIP/include/lwip -L./lwip/HTTPServer -L./lwip/HTTPClient -L./lwip/Core -L./lwip/HTTPServer -L./lwip/Core/arch -L./lwip/Core/lwIP -L./lwip/Core/lwIP/netif -L./lwip/Core/lwIP/core -L./lwip/Core/lwIP/include -L./lwip/Core/lwIP/core/ipv4 -L./lwip/Core/lwIP/core/snmp -L./lwip/Core/lwIP/include/ipv4 -L./lwip/Core/lwIP/include/netif -L./lwip/Core/lwIP/include/lwip -L./lwip/Core/lwIP/include/ipv4/lwip
+INCLUDE_PATHS = -I./mbed-beta -I./mbed-beta/LPC1768 -I./mbed-beta/LPC1768/GCC_CS -I./sdfs -I./nrf24ap1 -I./FATFileSystem -I./FATFileSystem/LPC1768
+LIBRARY_PATHS = -L./mbed-beta -L./mbed-beta/LPC1768 -L./mbed-beta/LPC1768/GCC_CS -L./sdfs -L./nrf24ap1 -L./FATFileSystem -L./FATFileSystem/LPC1768
 LIBRARIES = -lmbed -lcapi
 LINKER_SCRIPT = mbed-beta/LPC1768/GCC_CS/LPC1768.ld
 
@@ -16,7 +16,7 @@ CPP = $(GCC_BIN)arm-none-eabi-g++
 CC_FLAGS = -c -Os -fno-common -fmessage-length=0 -Wall -fno-exceptions -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections
 ONLY_C_FLAGS = -std=gnu99
 ONLY_CPP_FLAGS = -std=gnu++98
-CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_CS
+CC_SYMBOLS = -DTARGET_LPC1768 -DTOOLCHAIN_GCC_CS -DNDEBUG
 
 
 AS = $(GCC_BIN)arm-none-eabi-as
