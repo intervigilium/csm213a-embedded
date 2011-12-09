@@ -1,6 +1,7 @@
 #ifndef SYNCED_SDFILESYSTEM_H_
 #define SYNCED_SDFILESYSTEM_H_
 
+#include "EthernetNetIf.h"
 #include "mbed.h"
 #include "SDFileSystem.h"
 
