@@ -1,6 +1,7 @@
 #ifndef LIBANT_H_
 #define LIBANT_H_
 
+#define EVENT_RF                        0x01
 #define EVENT_RX_ACKNOWLEDGED           0x9b
 #define EVENT_RX_BROADCAST              0x9a
 #define EVENT_RX_BURST_PACKET           0x9c
@@ -48,8 +49,11 @@
 #define MESG_ENABLE_LED_FLASH_ID        0x68
 
 #define DEFAULT_NETWORK_NUMBER          0x00
-#define DEFAULT_TRANSMISSION_TYPE       0x00
-#define DEFAULT_DEVICE_TYPE_ID          0xFD
+#define DEFAULT_TRANSMISSION_TYPE       0x01
+#define DEFAULT_DEVICE_TYPE_ID          0x0a
+#define MASTER_DEVICE_ID                0xae86
+#define DEFAULT_CHANNEL_FREQ            0x66
+#define DEFAULT_CHANNEL_PERIOD          0x1f86
 #define RX_DUPLEX_CHANNEL_TYPE          0x00
 #define TX_DUPLEX_CHANNEL_TYPE          0x10
 #define RX_SHARED_CHANNEL_TYPE          0x20
@@ -58,11 +62,9 @@
 #define TX_ONLY_CHANNEL_TYPE            0x50
 
 struct ant_packet {
-  uint8_t sync;
   uint8_t length;
-  uint8_t id;
+  uint8_t type;
   uint8_t *data;
-  uint8_t checksum;
 };
 
 #endif
