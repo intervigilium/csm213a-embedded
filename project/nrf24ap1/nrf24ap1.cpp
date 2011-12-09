@@ -369,7 +369,6 @@ void Nrf24ap1::OnAp1Rx() {
 }
 
 void Nrf24ap1::HandleAp1DataMessage(uint8_t type, uint8_t *buf, int len) {
-  uint8_t channel = buf[0];
   uint8_t ap1_packet_id = buf[1];
   debug("INFO: data message 0x%x: %s", type, buf);
   if (ap1_packet_id == AP1_PACKET_SYNC_ID) {
@@ -398,7 +397,6 @@ void Nrf24ap1::HandleAp1DataMessage(uint8_t type, uint8_t *buf, int len) {
 
 void Nrf24ap1::HandleAp1EventMessage(uint8_t type, uint8_t *buf, int len) {
   struct ant_packet *p = NULL;
-  uint8_t channel = buf[0];
   uint8_t response_type = buf[1];
   uint8_t response_code = buf[2];
   debug("INFO: response 0x%x for message 0x%x", response_code, response_type);
