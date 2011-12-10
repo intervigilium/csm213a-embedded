@@ -1,4 +1,5 @@
 #include "synced_sd_filesystem.h"
+#include "md4.h"
 
 SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi, PinName miso, PinName sclk, PinName cs, const char* name) :
     SDFileSystem(mosi, miso, sclk, cs, name) {
