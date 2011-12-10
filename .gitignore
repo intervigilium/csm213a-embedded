@@ -9,3 +9,4 @@ LPC2368
 LPC11U24
 mbed/*
 project/libs
+cscope.out

@@ -12,6 +12,7 @@ SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi
   address_ = addr;
   is_master_ = is_master;
   TCPSocketErr err;
+  // TODO init block_md4_, dirty_
   if (is_master) {
     master_socket_ = new TCPSocket();
     master_socket_->setOnEvent(this, &SyncedSDFileSystem::on_master_event);
@@ -52,12 +53,20 @@ int SyncedSDFileSystem::mkdir(const char *name, mode_t mode) {
   return SDFileSystem::mkdir(name, mode);
 }
 
+/*
+ * Assume write success and return automatically.
+ */
 int SyncedSDFileSystem::disk_write(const char *buffer, int block_number) {
-  // TODO: make this call sleep until write comes back
+  node_request_write(buffer, block_number);
+  dirty_[block_number] = true;
   return SDFileSystem::disk_write(buffer, block_number);
 }
 
 int SyncedSDFileSystem::disk_read(char *buffer, int block_number) {
+  // poll dirty_ flag, block when it's still dirty
+  while (dirty_[block_number]) {
+    wait_us(5); //FIXME
+  }
   return SDFileSystem::disk_read(buffer, block_number);
 }
 
@@ -107,40 +116,14 @@ void SyncedSDFileSystem::on_node_event(TCPSocketEvent e) {
             // TODO: handle error
           }
           free(buf);
+          dirty_[block_num] = false;
           break;
         case MSG_WRITE_SUCCESS:
           ret = node_socket_->recv((char *) &block_num, sizeof(int));
           if (ret != sizeof(int)) {
             // TODO: handle error
           }
-          if (node_write_queue_.empty()) {
-            // TODO: handle error
-          }
-          ev = &node_write_queue_.front();
-          if (ev->block_num == block_num) {
-            ret = SDFileSystem::disk_write(ev->data, ev->block_num);
-            node_write_queue_.pop_front();
-            // TODO: trigger SyncedSDFileSystem::disk_write to return ret
-          } else {
-            // TODO: trigger SyncedSDFileSystem::disk_write to return -1
-          }
-          break;
-        case MSG_WRITE_FAIL:
-          ret = node_socket_->recv((char *) &block_num, sizeof(int));
-          if (ret != sizeof(int)) {
-            // TODO: handle error
-          }
-          if (node_write_queue_.empty()) {
-            // TODO: handle error
-          }
-          ev = &node_write_queue_.front();
-          if (ev->block_num == block_num) {
-            node_write_queue_.pop_front();
-            free(ev);
-            // TODO: trigger SyncedSDFileSystem::disk_write to return -1
-          } else {
-            // TODO: trigger SyncedSDFileSystem::disk_write to return -1
-          }
+          dirty_[block_num] = false;
           break;
         default:
           // TODO: handle error
