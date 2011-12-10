@@ -1,6 +1,7 @@
 #include "master_node_handler.h"
 
 MasterNodeHandler::MasterNodeHandler(SyncedSDFileSystem *sdfs, TCPSocket *slave_socket) {
+  is_closed_ = false;
   sdfs_ = sdfs;
   slave_socket_ = slave_socket;
   slave_socket_->setOnEvent(this, &MasterNodeHandler::on_socket_event);
@@ -8,6 +9,14 @@ MasterNodeHandler::MasterNodeHandler(SyncedSDFileSystem *sdfs, TCPSocket *slave_
 
 MasterNodeHandler::~MasterNodeHandler() {
   close();
+}
+
+bool MasterNodeHandler::is_closed() {
+  return is_closed_;
+}
+
+void MasterNodeHandler::send_block(const char *buffer, int block_number) {
+
 }
 
 void MasterNodeHandler::on_socket_event(TCPSocketEvent e) {
@@ -36,6 +45,7 @@ void MasterNodeHandler::dispatch_request() {
 }
 
 void MasterNodeHandler::close() {
+  is_closed_ = true;
   slave_socket_->resetOnEvent();
   slave_socket_->close();
   delete slave_socket_;

@@ -11,6 +11,8 @@ class MasterNodeHandler {
  public:
   MasterNodeHandler(SyncedSDFileSystem *sdfs, TCPSocket *slave_socket);
   ~MasterNodeHandler();
+  bool is_closed();
+  void send_block(const char *buffer, int block_number);
 
  protected:
 
@@ -21,6 +23,7 @@ class MasterNodeHandler {
 
   SyncedSDFileSystem *sdfs_;
   TCPSocket *slave_socket_;
+  bool is_closed_;
 
 };
 
