@@ -158,11 +158,11 @@ void SyncedSDFileSystem::on_node_event(TCPSocketEvent e) {
 
 void SyncedSDFileSystem::on_master_event(TCPSocketEvent e) {
   TCPSocketErr err;
-  Host n;
-  TCPSocket *s;
+  Host slave;
+  TCPSocket *slave_socket;
   switch (e) {
     case TCPSOCKET_ACCEPT:
-      err = master_socket_->accept(&n, &s);
+      err = master_socket_->accept(&slave, &slave_socket);
       if (err) {
         // TODO: handle errors
       }
