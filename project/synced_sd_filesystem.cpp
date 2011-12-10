@@ -1,5 +1,5 @@
-#include "synced_sd_filesystem.h"
 #include "md4.h"
+#include "synced_sd_filesystem.h"
 
 SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi, PinName miso, PinName sclk, PinName cs, const char* name) :
     SDFileSystem(mosi, miso, sclk, cs, name) {
@@ -161,13 +161,16 @@ void SyncedSDFileSystem::on_master_event(TCPSocketEvent e) {
   TCPSocketErr err;
   Host slave;
   TCPSocket *slave_socket;
+  MasterNodeHandler *dispatcher;
   switch (e) {
     case TCPSOCKET_ACCEPT:
       err = master_socket_->accept(&slave, &slave_socket);
       if (err) {
         // TODO: handle errors
       }
-      // dispatch to master_request_dispatcher
+      nodes_.push_back(slave);
+      dispatcher = new MasterNodeHandler(this, slave_socket);
+      // dispatcher should destroy self when done
       break;
     case TCPSOCKET_CONTIMEOUT:
     case TCPSOCKET_CONRST:

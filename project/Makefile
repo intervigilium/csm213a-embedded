@@ -3,7 +3,8 @@
 
 GCC_BIN = /opt/codesourcery/bin/
 PROJECT = cs213-project
-OBJECTS = main.o sdfs/SDFileSystem.o nrf24ap1/nrf24ap1.o synced_sd_filesystem.o NetServices/api/DNSRequest.o NetServices/api/TCPSocket.o NetServices/api/UDPSocket.o \
+OBJECTS = main.o sdfs/SDFileSystem.o nrf24ap1/nrf24ap1.o master_node_handler.o synced_sd_filesystem.o \
+	  NetServices/api/DNSRequest.o NetServices/api/TCPSocket.o NetServices/api/UDPSocket.o \
 	  NetServices/core/ipaddr.o NetServices/core/net.o NetServices/core/netservice.o NetServices/dbg/dbg.o NetServices/drv/eth/eth_drv.o \
 	  NetServices/if/eth/EthernetNetIf.o NetServices/if/lwip/lwipNetDnsRequest.o NetServices/if/lwip/LwipNetIf.o NetServices/if/lwip/lwipNetTcpSocket.o \
 	  NetServices/if/lwip/lwipNetUdpSocket.o NetServices/if/net/netdnsrequest.o NetServices/if/net/netif.o NetServices/if/net/nettcpsocket.o \

@@ -3,6 +3,7 @@
 
 #include "EthernetNetIf.h"
 #include "ipaddr.h"
+#include "master_node_handler.h"
 #include "mbed.h"
 #include "SDFileSystem.h"
 #include "TCPSocket.h"
@@ -37,6 +38,8 @@
 #define MSG_UPDATE_BLOCK 0x71 // block number, 512 byte block buffer
 #define MSG_WRITE_SUCCESS 0x76 // block number written
 #define MSG_WRITE_FAIL 0x75 // block number failed
+
+class MasterNodeHandler;
 
 struct block_hash {
   int block_num;
@@ -82,11 +85,13 @@ class SyncedSDFileSystem : public SDFileSystem {
  private:
   bool is_master_;
   IpAddr address_;
-  list<IpAddr> nodes_;
+  list<Host> nodes_;
   list<struct write_event> node_write_queue_;
   vector<struct block_hash> block_md4_;
   TCPSocket *master_socket_;
   TCPSocket *node_socket_;
+
+  friend class MasterNodeHandler;
 };
 
 #endif
