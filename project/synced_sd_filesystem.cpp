@@ -1,6 +1,12 @@
 #include "md4.h"
 #include "synced_sd_filesystem.h"
 
+string ip_to_string(IpAddr addr) {
+  char buf[17];
+  sprintf(buf, "%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]);
+  return string(buf);
+}
+
 SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi, PinName miso, PinName sclk, PinName cs, const char* name) :
     SDFileSystem(mosi, miso, sclk, cs, name) {
   address_ = addr;
@@ -168,9 +174,9 @@ void SyncedSDFileSystem::on_master_event(TCPSocketEvent e) {
       if (err) {
         // TODO: handle errors
       }
-      nodes_.push_back(slave);
       dispatcher = new MasterNodeHandler(this, slave_socket);
-      // dispatcher should destroy self when done
+      node_handlers_.insert(pair<string, MasterNodeHandler *>(ip_to_string(slave.getIp()), dispatcher));
+      // dispatcher should destroy self when done or disconnected
       break;
     case TCPSOCKET_CONTIMEOUT:
     case TCPSOCKET_CONRST:
@@ -188,8 +194,8 @@ void SyncedSDFileSystem::on_master_event(TCPSocketEvent e) {
   }
 }
 
-void SyncedSDFileSystem::master_update_block(IpAddr node, int block_number, const char *buffer) {
-  // send MSG_UPDATE_BLOCK to node
+void SyncedSDFileSystem::master_update_block(Host node, int block_number, const char *buffer) {
+  // send MSG_UPDATE_BLOCK to node handler
 
 }
 

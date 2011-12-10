@@ -1,7 +1,11 @@
 #ifndef SYNCED_SDFILESYSTEM_H_
 #define SYNCED_SDFILESYSTEM_H_
 
+#include <map>
+#include <string>
+
 #include "EthernetNetIf.h"
+#include "host.h"
 #include "ipaddr.h"
 #include "master_node_handler.h"
 #include "mbed.h"
@@ -77,7 +81,7 @@ class SyncedSDFileSystem : public SDFileSystem {
  protected:
   virtual void on_node_event(TCPSocketEvent e);
   virtual void on_master_event(TCPSocketEvent e);
-  virtual void master_update_block(IpAddr node, int block_number, const char *buffer);
+  virtual void master_update_block(Host node, int block_number, const char *buffer);
   virtual void master_broadcast_update(const char *buffer, int block_number);
   virtual int node_request_sync(int block_num, const char *block_checksums);
   virtual int node_request_write(const char *buffer, int block_number);
@@ -85,7 +89,7 @@ class SyncedSDFileSystem : public SDFileSystem {
  private:
   bool is_master_;
   IpAddr address_;
-  list<Host> nodes_;
+  map<string, MasterNodeHandler *> node_handlers_;
   list<struct write_event> node_write_queue_;
   vector<struct block_hash> block_md4_;
   TCPSocket *master_socket_;
