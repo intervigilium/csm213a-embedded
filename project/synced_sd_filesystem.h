@@ -31,12 +31,10 @@
 // slave -> master messages
 #define MSG_WRITE_BLOCK 0x72 // block number, 512 byte block buffer
 #define MSG_REQUEST_SYNC 0x73 // block number, MD4 for block 0 to 31
-#define MSG_REQUEST_BLOCK 0x74 // block number
 
 // master -> slave messages
 #define MSG_UPDATE_BLOCK 0x71 // block number, 512 byte block buffer
 #define MSG_WRITE_SUCCESS 0x76 // block number written
-#define MSG_WRITE_FAIL 0x75 // block number failed
 
 struct block_hash {
   int block_num;
@@ -83,8 +81,9 @@ class SyncedSDFileSystem : public SDFileSystem {
   bool is_master_;
   IpAddr address_;
   list<IpAddr> nodes_;
-  list<struct write_event> node_write_queue_;
   vector<struct block_hash> block_md4_;
+  /* A block that's written and not confirmed by master is dirty */
+  vector<bool> dirty_;
   TCPSocket *master_socket_;
   TCPSocket *node_socket_;
 };
