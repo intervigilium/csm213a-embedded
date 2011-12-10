@@ -168,19 +168,3 @@ void mdfour(unsigned char *out, const unsigned char *in, int n)
 
 	A = B = C = D = 0;
 }
-
-int main(void) {
-  uint8_t in[128];
-  uint8_t out[16];
-  int i;
-
-  bzero(in, 128);
-  scanf("%s", in);
-  mdfour(out, in, 128);
-
-  printf("buf = %s\n", in);
-  for (i = 0; i < 16; ++i)
-    printf("%02x", out[i]);
-  putchar('\n');
-  return 0;
-}
