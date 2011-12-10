@@ -21,6 +21,33 @@
  *     fclose(fp);
  * }
  */
+
+// TODO: dynamic discovery of master
+#define MASTER_ADDR 64
+#define SYNC_FS_PORT 31415
+#define BLOCK_SIZE 512
+#define HASH_SIZE 16
+
+// slave -> master messages
+#define MSG_WRITE_BLOCK 0x72 // block number, 512 byte block buffer
+#define MSG_REQUEST_SYNC 0x73 // block number, MD4 for block 0 to 31
+#define MSG_REQUEST_BLOCK 0x74 // block number
+
+// master -> slave messages
+#define MSG_UPDATE_BLOCK 0x71 // block number, 512 byte block buffer
+#define MSG_WRITE_SUCCESS 0x76 // block number written
+#define MSG_WRITE_FAIL 0x75 // block number failed
+
+struct block_hash {
+  int block_num;
+  char md4[HASH_SIZE];
+};
+
+struct write_event {
+  int block_num;
+  char data[BLOCK_SIZE];
+};
+
 class SyncedSDFileSystem : public SDFileSystem {
  public:
   /** Create the File System for accessing an SD Card using SPI
@@ -32,6 +59,7 @@ class SyncedSDFileSystem : public SDFileSystem {
    * @param name The name used to access the virtual filesystem
    */
   SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi, PinName miso, PinName sclk, PinName cs, const char* name);
+  ~SyncedSDFileSystem();
 
   virtual int rename(const char *oldname, const char *newname);
   virtual int mkdir(const char *name, mode_t mode);
@@ -44,18 +72,21 @@ class SyncedSDFileSystem : public SDFileSystem {
   virtual int disk_sectors();
 
  protected:
-  virtual void on_node_receive();
-  virtual void on_master_receive();
-  virtual void master_broadcast_time();
+  virtual void on_node_event(TCPSocketEvent e);
+  virtual void on_master_event(TCPSocketEvent e);
+  virtual void master_update_block(IpAddr node, int block_number, const char *buffer);
   virtual void master_broadcast_update(const char *buffer, int block_number);
-  virtual int node_request_sync(char *block_checksums);
-  virtual int node_request_write(char *buffer, int block_number);
-  virtual int node_request_update(char *updated_buffer, int block_number);
+  virtual int node_request_sync(int block_num, const char *block_checksums);
+  virtual int node_request_write(const char *buffer, int block_number);
 
  private:
   bool is_master_;
   IpAddr address_;
   list<IpAddr> nodes_;
+  list<struct write_event> node_write_queue_;
+  vector<struct block_hash> block_md4_;
+  TCPSocket *master_socket_;
+  TCPSocket *node_socket_;
 };
 
 #endif
