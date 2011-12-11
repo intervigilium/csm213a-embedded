@@ -12,7 +12,15 @@ SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi
   address_ = addr;
   is_master_ = is_master;
   TCPSocketErr err;
-  // TODO init block_md4_, dirty_
+  block_md4_ = vector<struct block_hash>(BLOCK_NUM);
+  for (int i = 0; i < BLOCK_NUM; ++i) {
+    block_md4_[i].block_num = i;
+    if (SDFileSystem::disk_read((char *)buffer_, i)) {
+      // TODO: handle error
+    }
+    mdfour((unsigned char *)block_md4_[i].md4, buffer_, BLOCK_SIZE);
+  }
+  dirty_ = vector<bool>(BLOCK_NUM, false);
   if (is_master) {
     master_socket_ = new TCPSocket();
     master_socket_->setOnEvent(this, &SyncedSDFileSystem::on_master_event);
@@ -88,8 +96,6 @@ void SyncedSDFileSystem::on_node_event(TCPSocketEvent e) {
   int ret;
   int block_num;
   char msg_type;
-  char *buf;
-  struct write_event *ev;
   switch (e) {
     case TCPSOCKET_CONNECTED:
       // now connected, do nothing, assume connection is constant
@@ -106,16 +112,15 @@ void SyncedSDFileSystem::on_node_event(TCPSocketEvent e) {
           if (ret != sizeof(int)) {
             // TODO: handle error
           }
-          buf = (char *) malloc(sizeof(char) * BLOCK_SIZE);
-          ret = node_socket_->recv((char *) buf, BLOCK_SIZE);
+          ret = node_socket_->recv((char *) buffer_, BLOCK_SIZE);
           if (ret != BLOCK_SIZE) {
             // TODO: handle error
           }
-          ret = SDFileSystem::disk_write(buf, block_num);
+          ret = SDFileSystem::disk_write((char *)buffer_, block_num);
+          mdfour((unsigned char*)block_md4_[block_num].md4, buffer_, BLOCK_SIZE);
           if (ret) {
             // TODO: handle error
           }
-          free(buf);
           dirty_[block_num] = false;
           break;
         case MSG_WRITE_SUCCESS:

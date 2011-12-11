@@ -32,6 +32,7 @@
 #define SYNC_FS_PORT 31415
 #define BLOCK_SIZE 512
 #define HASH_SIZE 16
+#define BLOCK_NUM 32
 
 // slave -> master messages
 #define MSG_WRITE_BLOCK 0x72 // block number, 512 byte block buffer
@@ -45,12 +46,12 @@ class MasterNodeHandler;
 
 struct block_hash {
   int block_num;
-  char md4[HASH_SIZE];
+  unsigned char md4[HASH_SIZE];
 };
 
 struct write_event {
   int block_num;
-  char data[BLOCK_SIZE];
+  unsigned char data[BLOCK_SIZE];
 };
 
 class SyncedSDFileSystem : public SDFileSystem {
@@ -94,6 +95,7 @@ class SyncedSDFileSystem : public SDFileSystem {
   TCPSocket *master_socket_;
   TCPSocket *node_socket_;
 
+  unsigned char buffer_[BLOCK_SIZE];
   friend class MasterNodeHandler;
 };
 
