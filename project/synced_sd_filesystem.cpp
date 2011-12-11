@@ -65,9 +65,16 @@ int SyncedSDFileSystem::mkdir(const char *name, mode_t mode) {
  * Assume write success and return automatically.
  */
 int SyncedSDFileSystem::disk_write(const char *buffer, int block_number) {
-  node_request_write(buffer, block_number);
-  dirty_[block_number] = true;
-  return SDFileSystem::disk_write(buffer, block_number);
+  int ret;
+  if (is_master_) {
+    ret = SDFileSystem::disk_write(buffer, block_number);
+    master_broadcast_update(buffer, block_number);
+  } else {
+    dirty_[block_number] = true;
+    ret = SDFileSystem::disk_write(buffer, block_number);
+    node_request_write(buffer, block_number);
+  }
+  return ret;
 }
 
 int SyncedSDFileSystem::disk_read(char *buffer, int block_number) {
