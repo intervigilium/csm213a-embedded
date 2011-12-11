@@ -189,11 +189,6 @@ void SyncedSDFileSystem::on_master_event(TCPSocketEvent e) {
   }
 }
 
-void SyncedSDFileSystem::master_update_block(Host node, int block_number, const char *buffer) {
-  // send MSG_UPDATE_BLOCK to node handler
-
-}
-
 void SyncedSDFileSystem::master_broadcast_update(const char *buffer, int block_number) {
   // send MSG_UPDATE_BLOCK to all slaves
 }

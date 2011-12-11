@@ -67,7 +67,7 @@ class SyncedSDFileSystem : public SDFileSystem {
  protected:
   virtual void on_node_event(TCPSocketEvent e);
   virtual void on_master_event(TCPSocketEvent e);
-  virtual void master_update_block(Host node, int block_number, const char *buffer);
+  virtual void master_update_block(Host node, const char *buffer, int block_number);
   virtual void master_broadcast_update(const char *buffer, int block_number);
   virtual int node_request_sync(int block_num, const char *block_checksums);
   virtual int node_request_write(const char *buffer, int block_number);
