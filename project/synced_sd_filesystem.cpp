@@ -182,7 +182,7 @@ void SyncedSDFileSystem::master_broadcast_update(const char *buffer, int block_n
   }
 }
 
-int SyncedSDFileSystem::node_request_sync(int block_num, const char *block_checksums) {
+int SyncedSDFileSystem::node_request_sync(int block_number, const char *block_checksums) {
   // send checksums for block_number to block_num+31 to master
   // master replies with MSG_UPDATE_BLOCK for blocks that need updating
   debug("SLAVE: requesting sync starting at block %d", block_number);
