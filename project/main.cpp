@@ -67,12 +67,12 @@ int main() {
         IpAddr(192,168,1,1), // gateway
         IpAddr(192,168,1,1) // dns
       );
-    ip = eth.getIp();
+    ip = eth->getIp();
     printf("\n\r\n\rMASTER: %d.%d.%d.%d\n\r", ip[0], ip[1], ip[2], ip[3]);
     do_master();
   } else {
     eth = new EthernetNetIf();
-    ip = eth.getIp();
+    ip = eth->getIp();
     printf("\n\r\n\rSLAVE: %d.%d.%d.%d\n\r", ip[0], ip[1], ip[2], ip[3]);
     do_slave();
   }
