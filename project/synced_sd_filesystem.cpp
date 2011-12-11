@@ -143,6 +143,7 @@ void SyncedSDFileSystem::on_node_event(TCPSocketEvent e) {
 }
 
 void SyncedSDFileSystem::on_master_event(TCPSocketEvent e) {
+  debug("MASTER: got event: %d", e);
   TCPSocketErr err;
   Host slave;
   TCPSocket *slave_socket;
@@ -150,10 +151,12 @@ void SyncedSDFileSystem::on_master_event(TCPSocketEvent e) {
 
   switch (e) {
     case TCPSOCKET_ACCEPT:
+      debug("MASTER: accepting new connection");
       err = tcp_socket_->accept(&slave, &slave_socket);
       if (err) {
         // TODO: handle errors
       }
+      debug("MASTER: creating new handler");
       dispatcher = new MasterNodeHandler(this, slave, slave_socket);
       node_handlers_.insert(pair<string, MasterNodeHandler *>(ip_to_string(slave.getIp()), dispatcher));
       // dispatcher should destroy self when done or disconnected

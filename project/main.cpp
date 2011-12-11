@@ -18,6 +18,7 @@ Ticker function_ticker;
 
 
 void write_name_file() {
+  pc.printf("SLAVE: writing\n\r");
   IpAddr addr = eth->getIp();
   FILE *fp = fopen(NAME_FILE, "w");
   if (fp != NULL) {
@@ -27,8 +28,9 @@ void write_name_file() {
 }
 
 void read_name_file() {
-  FILE *fp = fopen(NAME_FILE, "r");
+  pc.printf("MASTER: reading\n\r");
   uint8_t q0, q1, q2, q3;
+  FILE *fp = fopen(NAME_FILE, "r");
   if (fp != NULL) {
     fscanf(fp, "%d.%d.%d.%d", &q0, &q1, &q2, &q3);
     pc.printf("%d.%d.%d.%d is Spartacus!\n\r", &q0, &q1, &q2, &q3);
