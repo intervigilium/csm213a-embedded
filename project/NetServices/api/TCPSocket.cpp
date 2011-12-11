@@ -1,17 +1,17 @@
 
 /*
 Copyright (c) 2010 Donatien Garnier (donatiengar [at] gmail [dot] com)
- 
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
- 
+
 The above copyright notice and this permission notice shall be included in
 all copies or substantial portions of the Software.
- 
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,13 +38,13 @@ TCPSocket::~TCPSocket() //close()
 {
   close();
 }
-  
+
 TCPSocketErr TCPSocket::bind(const Host& me)
 {
   TCPSocketErr tcpSocketErr = checkInst();
   if(tcpSocketErr)
     return tcpSocketErr;
-  return (TCPSocketErr) m_pNetTcpSocket->bind(me); 
+  return (TCPSocketErr) m_pNetTcpSocket->bind(me);
 }
 
 TCPSocketErr TCPSocket::listen()
@@ -52,7 +52,7 @@ TCPSocketErr TCPSocket::listen()
   TCPSocketErr tcpSocketErr = checkInst();
   if(tcpSocketErr)
     return tcpSocketErr;
-  return (TCPSocketErr) m_pNetTcpSocket->listen(); 
+  return (TCPSocketErr) m_pNetTcpSocket->listen();
 }
 
 TCPSocketErr TCPSocket::connect(const Host& host)
@@ -60,7 +60,7 @@ TCPSocketErr TCPSocket::connect(const Host& host)
   TCPSocketErr tcpSocketErr = checkInst();
   if(tcpSocketErr)
     return tcpSocketErr;
-  return (TCPSocketErr) m_pNetTcpSocket->connect(host); 
+  return (TCPSocketErr) m_pNetTcpSocket->connect(host);
 }
 
 TCPSocketErr TCPSocket::accept(Host* pClient, TCPSocket** ppNewTCPSocket)
@@ -74,13 +74,13 @@ TCPSocketErr TCPSocket::accept(Host* pClient, TCPSocket** ppNewTCPSocket)
     *ppNewTCPSocket = new TCPSocket(pNewNetTcpSocket);
   return tcpSocketErr;
 }
-  
+
 int /*if < 0 : TCPSocketErr*/ TCPSocket::send(const char* buf, int len)
 {
   TCPSocketErr tcpSocketErr = checkInst();
   if(tcpSocketErr)
     return tcpSocketErr;
-  return m_pNetTcpSocket->send(buf, len);  
+  return m_pNetTcpSocket->send(buf, len);
 }
 
 int /*if < 0 : TCPSocketErr*/ TCPSocket::recv(char* buf, int len)
@@ -109,14 +109,14 @@ void TCPSocket::setOnEvent( void (*pMethod)(TCPSocketEvent) )
 }
 
 #if 0 //For info only
-template<class T> 
+template<class T>
 void TCPSocket::setOnEvent( T* pItem, void (T::*pMethod)(TCPSocketEvent) )
 {
   m_pCbItem = (CDummy*) pItem;
   m_pCbMeth = (void (CDummy::*)(TCPSocketEvent)) pMethod;
 }
 #endif
-  
+
 void TCPSocket::resetOnEvent() //Disable callback
 {
   m_pCb = NULL;
