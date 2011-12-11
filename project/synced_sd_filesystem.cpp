@@ -117,10 +117,10 @@ void SyncedSDFileSystem::on_node_event(TCPSocketEvent e) {
             // TODO: handle error
           }
           ret = SDFileSystem::disk_write((char *)buffer_, block_num);
-          mdfour((unsigned char*)block_md4_[block_num].md4, buffer_, BLOCK_SIZE);
           if (ret) {
             // TODO: handle error
           }
+          mdfour((unsigned char*)block_md4_[block_num].md4, buffer_, BLOCK_SIZE);
           dirty_[block_num] = false;
           break;
         case MSG_WRITE_SUCCESS:
@@ -189,18 +189,58 @@ void SyncedSDFileSystem::master_update_block(Host node, int block_number, const 
 
 void SyncedSDFileSystem::master_broadcast_update(const char *buffer, int block_number) {
   // send MSG_UPDATE_BLOCK to all slaves
-
 }
 
 int SyncedSDFileSystem::node_request_sync(int block_num, const char *block_checksums) {
   // send checksums for block_num to block_num+31 to master
   // master replies with MSG_UPDATE_BLOCK for blocks that need updating
+  int ret;
+  char msg_type = MSG_REQUEST_SYNC;
+
+  ret = node_socket_->send(&msg_type, 1);
+  if (ret != 1) {
+    // TODO: handle error
+  }
+
+  // send a dummy block number
+  ret = node_socket_->send((char *)&ret, sizeof(int));
+  if (ret != sizeof(int)) {
+    // TODO: handle error
+  }
+
+  /* FIXME: 32 * 16 = 512 super clowny
+   * put all hashes into buffer_ and send over at once
+   */
+  for (int i = 0; i < BLOCK_NUM; ++i) {
+    memcpy(buffer_ + HASH_SIZE * i, block_md4_[i].md4, HASH_SIZE);
+  }
+  ret = node_socket_->send((char *)buffer_, BLOCK_SIZE);
+  if (ret != BLOCK_SIZE) {
+    // TODO: handle error
+  }
   return 0;
 }
 
 int SyncedSDFileSystem::node_request_write(const char *buffer, int block_number) {
   // send request to write buffer to block_number
   // master replies with MSG_WRITE_SUCCESS or MSG_WRITE_FAIL
+  int ret;
+  char msg_type = MSG_WRITE_BLOCK;
+
+  ret = node_socket_->send(&msg_type, 1);
+  if (ret != 1) {
+    // TODO: handle error
+  }
+
+  ret = node_socket_->send((char *)&block_number, sizeof(int));
+  if (ret != sizeof(int)) {
+    // TODO: handle error
+  }
+
+  ret = node_socket_->send(buffer, BLOCK_SIZE);
+  if (ret != BLOCK_SIZE) {
+    // TODO: handle error
+  }
   return 0;
 }
 
