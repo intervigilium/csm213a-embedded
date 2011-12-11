@@ -2,6 +2,7 @@
 #define MASTER_NODE_HANDLER_H_
 
 #include "EthernetNetIf.h"
+#include "fs_constants.h"
 #include "synced_sd_filesystem.h"
 #include "TCPSocket.h"
 
