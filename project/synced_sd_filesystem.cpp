@@ -1,3 +1,4 @@
+#include "debug.h"
 #include "md4.h"
 #include "synced_sd_filesystem.h"
 
@@ -13,15 +14,17 @@ SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi
   address_ = addr;
   is_master_ = is_master;
   tcp_socket_ = new TCPSocket();
+  dirty_ = vector<bool>(BLOCK_NUM, false);
   block_md4_ = vector<struct block_hash>(BLOCK_NUM);
+
   for (int i = 0; i < BLOCK_NUM; ++i) {
     block_md4_[i].block_num = i;
     if (SDFileSystem::disk_read((char *)buffer_, i)) {
       // TODO: handle error
     }
-    mdfour((unsigned char *)block_md4_[i].md4, buffer_, BLOCK_SIZE);
+    mdfour((unsigned char *) block_md4_[i].md4, buffer_, BLOCK_SIZE);
   }
-  dirty_ = vector<bool>(BLOCK_NUM, false);
+
   if (is_master) {
     tcp_socket_->setOnEvent(this, &SyncedSDFileSystem::on_master_event);
     tcp_socket_->bind(Host(addr, SYNC_FS_PORT));
@@ -34,6 +37,8 @@ SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi
       tcp_socket_->close();
       delete tcp_socket_;
       printf("SLAVE: failed to connect to master, entering standalone mode\n\r");
+    } else {
+      debug("SLAVE: connected to master");
     }
   }
 }
@@ -63,6 +68,7 @@ int SyncedSDFileSystem::mkdir(const char *name, mode_t mode) {
  */
 int SyncedSDFileSystem::disk_write(const char *buffer, int block_number) {
   int ret;
+
   if (is_master_) {
     ret = SDFileSystem::disk_write(buffer, block_number);
     master_broadcast_update(buffer, block_number);
@@ -75,7 +81,6 @@ int SyncedSDFileSystem::disk_write(const char *buffer, int block_number) {
 }
 
 int SyncedSDFileSystem::disk_read(char *buffer, int block_number) {
-  // poll dirty_ flag, block when it's still dirty
   while (dirty_[block_number]) {
     wait_us(5); //FIXME
   }
@@ -98,6 +103,7 @@ int SyncedSDFileSystem::disk_sectors() {
 
 void SyncedSDFileSystem::on_node_event(TCPSocketEvent e) {
   char msg_type;
+
   switch (e) {
     case TCPSOCKET_CONNECTED:
       // now connected, do nothing, assume connection is constant
@@ -140,6 +146,7 @@ void SyncedSDFileSystem::on_master_event(TCPSocketEvent e) {
   Host slave;
   TCPSocket *slave_socket;
   MasterNodeHandler *dispatcher;
+
   switch (e) {
     case TCPSOCKET_ACCEPT:
       err = tcp_socket_->accept(&slave, &slave_socket);
@@ -167,7 +174,8 @@ void SyncedSDFileSystem::on_master_event(TCPSocketEvent e) {
 }
 
 void SyncedSDFileSystem::master_broadcast_update(const char *buffer, int block_number) {
-  // send MSG_UPDATE_BLOCK to all slaves
+  debug("MASTER: broadcasting update of block %d", block_number);
+
   map<string, MasterNodeHandler *>::const_iterator it;
   for (it = node_handlers_.begin(); it != node_handlers_.end(); it++) {
     (*it).second->send_block(buffer, block_number);
@@ -175,10 +183,14 @@ void SyncedSDFileSystem::master_broadcast_update(const char *buffer, int block_n
 }
 
 int SyncedSDFileSystem::node_request_sync(int block_num, const char *block_checksums) {
-  // send checksums for block_num to block_num+31 to master
+  // send checksums for block_number to block_num+31 to master
   // master replies with MSG_UPDATE_BLOCK for blocks that need updating
+  debug("SLAVE: requesting sync starting at block %d", block_number);
+
+  int ret;
   char msg_type = MSG_REQUEST_SYNC;
-  int ret = tcp_socket_->send(&msg_type, 1);
+
+  ret = tcp_socket_->send(&msg_type, 1);
   if (ret != 1) {
     // TODO: handle error
   }
@@ -193,7 +205,7 @@ int SyncedSDFileSystem::node_request_sync(int block_num, const char *block_check
    * put all hashes into buffer_ and send over at once
    */
   for (int i = 0; i < BLOCK_SIZE/HASH_SIZE; i++) {
-    memcpy(buffer_ + (i * HASH_SIZE), block_md4_[block_num + i].md4, HASH_SIZE);
+    memcpy(buffer_ + (i * HASH_SIZE), block_md4_[block_number + i].md4, HASH_SIZE);
   }
   ret = tcp_socket_->send((char *)buffer_, BLOCK_SIZE);
   if (ret != BLOCK_SIZE) {
@@ -205,6 +217,8 @@ int SyncedSDFileSystem::node_request_sync(int block_num, const char *block_check
 int SyncedSDFileSystem::node_request_write(const char *buffer, int block_number) {
   // send request to write buffer to block_number
   // master replies with MSG_WRITE_SUCCESS or MSG_WRITE_FAIL
+  debug("SLAVE: requesting write to block %d", block_number);
+
   int ret;
   char msg_type = MSG_WRITE_BLOCK;
 
@@ -226,28 +240,40 @@ int SyncedSDFileSystem::node_request_write(const char *buffer, int block_number)
 }
 
 void SyncedSDFileSystem::node_handle_update_block() {
+  debug("SLAVE: handling UPDATE_BLOCK");
+
+  int ret;
   int block_num;
-  int ret = tcp_socket_->recv((char *) &block_num, sizeof(int));
+
+  ret = tcp_socket_->recv((char *) &block_num, sizeof(int));
   if (ret != sizeof(int)) {
     // TODO: handle error
   }
+
   ret = tcp_socket_->recv((char *) buffer_, BLOCK_SIZE);
   if (ret != BLOCK_SIZE) {
     // TODO: handle error
   }
+
   ret = SDFileSystem::disk_write((char *)buffer_, block_num);
   if (ret) {
     // TODO: handle error
   }
+
   mdfour((unsigned char*)block_md4_[block_num].md4, buffer_, BLOCK_SIZE);
   dirty_[block_num] = false;
 }
 
 void SyncedSDFileSystem::node_handle_write_success() {
+  debug("SLAVE: handling WRITE_SUCCESS");
+
+  int ret;
   int block_num;
-  int ret = tcp_socket_->recv((char *) &block_num, sizeof(int));
+
+  ret = tcp_socket_->recv((char *) &block_num, sizeof(int));
   if (ret != sizeof(int)) {
     // TODO: handle error
   }
+
   dirty_[block_num] = false;
 }
