@@ -180,10 +180,8 @@ void SyncedSDFileSystem::master_broadcast_update(const char *buffer, int block_n
 int SyncedSDFileSystem::node_request_sync(int block_num, const char *block_checksums) {
   // send checksums for block_num to block_num+31 to master
   // master replies with MSG_UPDATE_BLOCK for blocks that need updating
-  int ret;
   char msg_type = MSG_REQUEST_SYNC;
-
-  ret = node_socket_->send(&msg_type, 1);
+  int ret = node_socket_->send(&msg_type, 1);
   if (ret != 1) {
     // TODO: handle error
   }
@@ -197,8 +195,8 @@ int SyncedSDFileSystem::node_request_sync(int block_num, const char *block_check
   /* FIXME: 32 * 16 = 512 super clowny
    * put all hashes into buffer_ and send over at once
    */
-  for (int i = 0; i < BLOCK_NUM; ++i) {
-    memcpy(buffer_ + HASH_SIZE * i, block_md4_[i].md4, HASH_SIZE);
+  for (int i = 0; i < BLOCK_SIZE/HASH_SIZE; i++) {
+    memcpy(buffer_ + (i * HASH_SIZE), block_md4_[block_num + i].md4, HASH_SIZE);
   }
   ret = node_socket_->send((char *)buffer_, BLOCK_SIZE);
   if (ret != BLOCK_SIZE) {
