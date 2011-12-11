@@ -1,17 +1,17 @@
 
 /*
 Copyright (c) 2010 Donatien Garnier (donatiengar [at] gmail [dot] com)
- 
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
- 
+
 The above copyright notice and this permission notice shall be included in
 all copies or substantial portions of the Software.
- 
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,8 +35,8 @@ NetTcpSocket::~NetTcpSocket() //close()
 {
   Net::unregisterNetTcpSocket(this);
 }
-  
-   
+
+
 //Callbacks
 #ifdef __LINKER_BUG_SOLVED__
 void NetTcpSocket::setOnEvent()
@@ -66,7 +66,7 @@ void NetTcpSocket::discardEvents()
 }
 
 void NetTcpSocket::flushEvents() //To be called during polling
-{ 
+{
   while( !m_events.empty() )
   {
     onEvent(m_events.front());
@@ -79,4 +79,3 @@ void NetTcpSocket::onEvent(NetTcpSocketEvent e) //To be called during polling
   if(m_pCbItem && m_pCbMeth)
     (m_pCbItem->*m_pCbMeth)(e);
 }
-
