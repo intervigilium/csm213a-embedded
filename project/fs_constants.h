@@ -1,7 +1,7 @@
 #ifndef FS_CONSTANTS_H_
 #define FS_CONSTANTS_H_
 
-#define MASTER_ADDR 64
+#define MASTER_ADDR 164
 #define SYNC_FS_PORT 31415
 #define BLOCK_SIZE 512
 #define HASH_SIZE 16

@@ -59,10 +59,16 @@ void do_master() {
 
 int main() {
   pc.baud(115200);
-  eth = new EthernetNetIf();
   if (IS_MASTER) {
+    eth = new EthernetNetIf(
+        IpAddr(192,168,1,164), // ip
+        IpAddr(255,255,255,0), // subnet
+        IpAddr(192,168,1,1), // gateway
+        IpAddr(192,168,1,1) // dns
+      );
     do_master();
   } else {
+    eth = new EthernetNetIf();
     do_slave();
   }
   return 0;
