@@ -37,6 +37,7 @@ SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi
       tcp_socket_->close();
       delete tcp_socket_;
       printf("SLAVE: failed to connect to master, entering standalone mode\n\r");
+      // TODO: handle offline mode by checking if tcp_socket_ == NULL
     } else {
       debug("SLAVE: connected to master");
     }
