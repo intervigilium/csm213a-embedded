@@ -1,17 +1,17 @@
 
 /*
 Copyright (c) 2010 Donatien Garnier (donatiengar [at] gmail [dot] com)
- 
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
- 
+
 The above copyright notice and this permission notice shall be included in
 all copies or substantial portions of the Software.
- 
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -50,10 +50,10 @@ void Net::poll()
   //DBG("\r\nNet : Services polling\r\n");
 
   //Poll Services
-  NetService::servicesPoll();  
-  
-  //DBG("\r\nNet : Interfaces polling\r\n");   
-      
+  NetService::servicesPoll();
+
+  //DBG("\r\nNet : Interfaces polling\r\n");
+
   //Poll Interfaces
   list<NetIf*>::iterator pIfIt;
 
@@ -61,16 +61,16 @@ void Net::poll()
   {
     (*pIfIt)->poll();
   }
-  
+
   //DBG("\r\nNet : Sockets polling\r\n");
-  
+
   //Poll Tcp Sockets
   list<NetTcpSocket*>::iterator pNetTcpSocketIt;
 
   for ( pNetTcpSocketIt = net().m_lpNetTcpSocket.begin() ; pNetTcpSocketIt != net().m_lpNetTcpSocket.end(); )
   {
     (*pNetTcpSocketIt)->poll();
-    
+
     if( (*pNetTcpSocketIt)->m_closed && !((*pNetTcpSocketIt)->m_refs) )
     {
       (*pNetTcpSocketIt)->m_removed = true;
@@ -83,14 +83,14 @@ void Net::poll()
       pNetTcpSocketIt++;
     }
   }
-  
+
   //Poll Udp Sockets
   list<NetUdpSocket*>::iterator pNetUdpSocketIt;
 
   for ( pNetUdpSocketIt = net().m_lpNetUdpSocket.begin() ; pNetUdpSocketIt != net().m_lpNetUdpSocket.end(); )
   {
     (*pNetUdpSocketIt)->poll();
-    
+
     if( (*pNetUdpSocketIt)->m_closed && !((*pNetUdpSocketIt)->m_refs) )
     {
       (*pNetUdpSocketIt)->m_removed = true;
@@ -110,7 +110,7 @@ void Net::poll()
 NetTcpSocket* Net::tcpSocket(NetIf& netif) {
   NetTcpSocket* pNetTcpSocket = netif.tcpSocket();
   pNetTcpSocket->m_refs++;
-  return pNetTcpSocket; 
+  return pNetTcpSocket;
 }
 
 NetTcpSocket* Net::tcpSocket() { //NetTcpSocket on default if
@@ -131,7 +131,7 @@ void Net::releaseTcpSocket(NetTcpSocket* pNetTcpSocket)
 NetUdpSocket* Net::udpSocket(NetIf& netif) {
   NetUdpSocket* pNetUdpSocket = netif.udpSocket();
   pNetUdpSocket->m_refs++;
-  return pNetUdpSocket; 
+  return pNetUdpSocket;
 }
 
 NetUdpSocket* Net::udpSocket() { //NetTcpSocket on default if
