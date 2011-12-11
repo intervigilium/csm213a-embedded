@@ -81,8 +81,7 @@ class SyncedSDFileSystem : public SDFileSystem {
   vector<struct block_hash> block_md4_;
   /* A block that's written and not confirmed by master is dirty */
   vector<bool> dirty_;
-  TCPSocket *master_socket_;
-  TCPSocket *node_socket_;
+  TCPSocket *tcp_socket_;
 
   unsigned char buffer_[BLOCK_SIZE];
   friend class MasterNodeHandler;

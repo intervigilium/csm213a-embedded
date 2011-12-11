@@ -9,9 +9,10 @@ string ip_to_string(IpAddr addr) {
 
 SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi, PinName miso, PinName sclk, PinName cs, const char* name) :
     SDFileSystem(mosi, miso, sclk, cs, name) {
+  TCPSocketErr err;
   address_ = addr;
   is_master_ = is_master;
-  TCPSocketErr err;
+  tcp_socket_ = new TCPSocket();
   block_md4_ = vector<struct block_hash>(BLOCK_NUM);
   for (int i = 0; i < BLOCK_NUM; ++i) {
     block_md4_[i].block_num = i;
@@ -22,29 +23,25 @@ SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi
   }
   dirty_ = vector<bool>(BLOCK_NUM, false);
   if (is_master) {
-    master_socket_ = new TCPSocket();
-    master_socket_->setOnEvent(this, &SyncedSDFileSystem::on_master_event);
-    master_socket_->bind(Host(addr, SYNC_FS_PORT));
-    master_socket_->listen();
+    tcp_socket_->setOnEvent(this, &SyncedSDFileSystem::on_master_event);
+    tcp_socket_->bind(Host(addr, SYNC_FS_PORT));
+    tcp_socket_->listen();
   } else {
-    node_socket_ = new TCPSocket();
-    node_socket_->setOnEvent(this, &SyncedSDFileSystem::on_node_event);
-    err = node_socket_->connect(Host(IpAddr(192, 168, 1, MASTER_ADDR), SYNC_FS_PORT));
+    tcp_socket_->setOnEvent(this, &SyncedSDFileSystem::on_node_event);
+    err = tcp_socket_->connect(Host(IpAddr(192, 168, 1, MASTER_ADDR), SYNC_FS_PORT));
     if (err) {
       // TODO: retry master registration periodically
-      node_socket_->close();
-      delete node_socket_;
+      tcp_socket_->close();
+      delete tcp_socket_;
+      printf("SLAVE: failed to connect to master, entering standalone mode\n\r");
     }
   }
 }
 
 SyncedSDFileSystem::~SyncedSDFileSystem() {
-  if (is_master_) {
-    master_socket_->close();
-    delete master_socket_;
-  } else {
-    node_socket_->close();
-    delete node_socket_;
+  if (tcp_socket_) {
+    tcp_socket_->close();
+    delete tcp_socket_;
   }
 }
 
@@ -106,7 +103,7 @@ void SyncedSDFileSystem::on_node_event(TCPSocketEvent e) {
       // now connected, do nothing, assume connection is constant
       break;
     case TCPSOCKET_READABLE:
-      if (node_socket_->recv(&msg_type, 1) != 1) {
+      if (tcp_socket_->recv(&msg_type, 1) != 1) {
         // TODO: handle error
         break;
       }
@@ -145,7 +142,7 @@ void SyncedSDFileSystem::on_master_event(TCPSocketEvent e) {
   MasterNodeHandler *dispatcher;
   switch (e) {
     case TCPSOCKET_ACCEPT:
-      err = master_socket_->accept(&slave, &slave_socket);
+      err = tcp_socket_->accept(&slave, &slave_socket);
       if (err) {
         // TODO: handle errors
       }
@@ -181,13 +178,13 @@ int SyncedSDFileSystem::node_request_sync(int block_num, const char *block_check
   // send checksums for block_num to block_num+31 to master
   // master replies with MSG_UPDATE_BLOCK for blocks that need updating
   char msg_type = MSG_REQUEST_SYNC;
-  int ret = node_socket_->send(&msg_type, 1);
+  int ret = tcp_socket_->send(&msg_type, 1);
   if (ret != 1) {
     // TODO: handle error
   }
 
   // send a dummy block number
-  ret = node_socket_->send((char *)&ret, sizeof(int));
+  ret = tcp_socket_->send((char *)&ret, sizeof(int));
   if (ret != sizeof(int)) {
     // TODO: handle error
   }
@@ -198,7 +195,7 @@ int SyncedSDFileSystem::node_request_sync(int block_num, const char *block_check
   for (int i = 0; i < BLOCK_SIZE/HASH_SIZE; i++) {
     memcpy(buffer_ + (i * HASH_SIZE), block_md4_[block_num + i].md4, HASH_SIZE);
   }
-  ret = node_socket_->send((char *)buffer_, BLOCK_SIZE);
+  ret = tcp_socket_->send((char *)buffer_, BLOCK_SIZE);
   if (ret != BLOCK_SIZE) {
     // TODO: handle error
   }
@@ -211,17 +208,17 @@ int SyncedSDFileSystem::node_request_write(const char *buffer, int block_number)
   int ret;
   char msg_type = MSG_WRITE_BLOCK;
 
-  ret = node_socket_->send(&msg_type, 1);
+  ret = tcp_socket_->send(&msg_type, 1);
   if (ret != 1) {
     // TODO: handle error
   }
 
-  ret = node_socket_->send((char *)&block_number, sizeof(int));
+  ret = tcp_socket_->send((char *)&block_number, sizeof(int));
   if (ret != sizeof(int)) {
     // TODO: handle error
   }
 
-  ret = node_socket_->send(buffer, BLOCK_SIZE);
+  ret = tcp_socket_->send(buffer, BLOCK_SIZE);
   if (ret != BLOCK_SIZE) {
     // TODO: handle error
   }
@@ -230,11 +227,11 @@ int SyncedSDFileSystem::node_request_write(const char *buffer, int block_number)
 
 void SyncedSDFileSystem::node_handle_update_block() {
   int block_num;
-  int ret = node_socket_->recv((char *) &block_num, sizeof(int));
+  int ret = tcp_socket_->recv((char *) &block_num, sizeof(int));
   if (ret != sizeof(int)) {
     // TODO: handle error
   }
-  ret = node_socket_->recv((char *) buffer_, BLOCK_SIZE);
+  ret = tcp_socket_->recv((char *) buffer_, BLOCK_SIZE);
   if (ret != BLOCK_SIZE) {
     // TODO: handle error
   }
@@ -248,7 +245,7 @@ void SyncedSDFileSystem::node_handle_update_block() {
 
 void SyncedSDFileSystem::node_handle_write_success() {
   int block_num;
-  int ret = node_socket_->recv((char *) &block_num, sizeof(int));
+  int ret = tcp_socket_->recv((char *) &block_num, sizeof(int));
   if (ret != sizeof(int)) {
     // TODO: handle error
   }
