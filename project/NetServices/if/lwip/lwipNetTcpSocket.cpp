@@ -1,17 +1,17 @@
 
 /*
 Copyright (c) 2010 Donatien Garnier (donatiengar [at] gmail [dot] com)
- 
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
- 
+
 The above copyright notice and this permission notice shall be included in
 all copies or substantial portions of the Software.
- 
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,7 +43,7 @@ m_pReadPbuf(NULL)
   {
     //Setup callbacks
     tcp_arg( (tcp_pcb*) m_pPcb, (void*) this ); //this will be passed to each static callback
-    
+
     tcp_recv( (tcp_pcb*) m_pPcb, LwipNetTcpSocket::sRecvCb );
     tcp_sent((tcp_pcb*) m_pPcb, LwipNetTcpSocket::sSentCb );
     tcp_err( (tcp_pcb*) m_pPcb, LwipNetTcpSocket::sErrCb );
@@ -59,16 +59,16 @@ LwipNetTcpSocket::~LwipNetTcpSocket()
     tcp_close( (tcp_pcb*) m_pPcb); //Disconnect & free pcb*/
   close();
 }
-  
+
 NetTcpSocketErr LwipNetTcpSocket::bind(const Host& me)
 {
   if(!m_pPcb)
     return NETTCPSOCKET_MEM; //NetTcpSocket was not properly initialised, should destroy it & retry
-    
+
   err_t err = tcp_bind( (tcp_pcb*) m_pPcb, IP_ADDR_ANY, me.getPort()); //IP_ADDR_ANY : Bind the connection to all local addresses
   if(err)
     return NETTCPSOCKET_INUSE;
-    
+
   return NETTCPSOCKET_OK;
 }
 
@@ -78,7 +78,7 @@ NetTcpSocketErr LwipNetTcpSocket::listen()
     return NETTCPSOCKET_MEM; //NetTcpSocket was not properly initialised, should destroy it & retry
 /*
   From doc/rawapi.txt :
-  
+
   The tcp_listen() function returns a new connection identifier, and
   the one passed as an argument to the function will be
   deallocated. The reason for this behavior is that less memory is
@@ -93,7 +93,7 @@ NetTcpSocketErr LwipNetTcpSocket::listen()
     return NETTCPSOCKET_MEM;
 
   m_pPcb = pNewPcb;
-  
+
   tcp_accept( (tcp_pcb*) m_pPcb, LwipNetTcpSocket::sAcceptCb );
 
   return NETTCPSOCKET_OK;
@@ -103,13 +103,13 @@ NetTcpSocketErr LwipNetTcpSocket::connect(const Host& host)
 {
   if(!m_pPcb)
     return NETTCPSOCKET_MEM; //NetTcpSocket was not properly initialised, should destroy it & retry
-  
+
   ip_addr_t ip = host.getIp().getStruct();
   err_t err = tcp_connect( (tcp_pcb*) m_pPcb, &ip, host.getPort(), LwipNetTcpSocket::sConnectedCb );
-  
+
   if(err)
     return NETTCPSOCKET_MEM;
-    
+
   return NETTCPSOCKET_OK;
 }
 
@@ -121,48 +121,48 @@ NetTcpSocketErr LwipNetTcpSocket::accept(Host* pClient, NetTcpSocket** ppNewNetT
   //if( m_lpInPcb.empty() )
   if( m_lpInNetTcpSocket.empty() )
     return NETTCPSOCKET_EMPTY;
-  
+
   tcp_accepted( ((tcp_pcb*) m_pPcb) ); //Should fire proper events //WARN: m_pPcb is the GOOD param here (and not pInPcb)
-  
+
 /*  tcp_pcb* pInPcb = m_lpInPcb.front();
   m_lpInPcb.pop();*/
-  
+
   if( (m_lpInNetTcpSocket.front()) == NULL )
   {
     m_lpInNetTcpSocket.pop();
     return NETTCPSOCKET_RST;
   }
-  
+
   if( (m_lpInNetTcpSocket.front())->m_closed )
   {
     Net::releaseTcpSocket(m_lpInNetTcpSocket.front());
     m_lpInNetTcpSocket.pop();
     return NETTCPSOCKET_RST;
   }
-  
+
   ip_addr_t* ip = (ip_addr_t*) &( (m_lpInNetTcpSocket.front()->m_pPcb)->remote_ip);
-  
+
   *ppNewNetTcpSocket = m_lpInNetTcpSocket.front();
   *pClient = Host(
-    IpAddr( 
+    IpAddr(
       ip
-    ), 
-    m_lpInNetTcpSocket.front()->m_pPcb->remote_port 
+    ),
+    m_lpInNetTcpSocket.front()->m_pPcb->remote_port
   );
   m_lpInNetTcpSocket.pop();
 //  *pClient = Host( IpAddr(pInPcb->remote_ip), pInPcb->remote_port );
-  
+
   //Return a new socket
  // *ppNewNetTcpSocket = (NetTcpSocket*) new LwipNetTcpSocket(pInPcb);
 
   //tcp_accepted( ((tcp_pcb*) m_pPcb) ); //Should fire proper events //WARN: m_pPcb is the GOOD param here (and not pInPcb)
-  
+
 /*  if(*ppNewNetTcpSocket == NULL)
   {
     DBG("Not enough mem, socket dropped in LwipNetTcpSocket::accept.\n");
     tcp_abort(pInPcb);
   }*/
-  
+
   return NETTCPSOCKET_OK;
 }
 
@@ -173,7 +173,7 @@ int /*if < 0 : NetTcpSocketErr*/ LwipNetTcpSocket::send(const char* buf, int len
 {
   if( !m_pPcb ) //Pcb doesn't exist (anymore)
     return NETTCPSOCKET_MEM;
-  int outLen = MIN( len, tcp_sndbuf( (tcp_pcb*) m_pPcb) ); 
+  int outLen = MIN( len, tcp_sndbuf( (tcp_pcb*) m_pPcb) );
   //tcp_sndbuf() returns the number of bytes available in the output queue, so never go above it
   err_t err = tcp_write( (tcp_pcb*) m_pPcb, (void*) buf, outLen, TCP_WRITE_FLAG_COPY );
   //Flags are TCP_WRITE_FLAG_COPY & TCP_WRITE_FLAG_MORE (see tcp_out.c) :
@@ -200,36 +200,36 @@ int /*if < 0 : NetTcpSocketErr*/ LwipNetTcpSocket::recv(char* buf, int len)
     return NETTCPSOCKET_MEM;
   int inLen = 0;
   int cpyLen = 0;
-  
-  static int rmgLen = 0; 
+
+  static int rmgLen = 0;
   //Contains the remaining len in this pbuf
-  
+
   if( !m_pReadPbuf )
   {
     rmgLen = 0;
     return 0;
   }
-  
+
   if ( !rmgLen ) //We did not know m_pReadPbuf->len last time we called this fn
   {
     rmgLen = m_pReadPbuf->len;
   }
-  
+
   while ( inLen < len )
   {
     cpyLen = MIN( (len - inLen), rmgLen ); //Remaining len to copy, remaining len in THIS pbuf
     memcpy((void*)buf, (void*)((char*)(m_pReadPbuf->payload) + (m_pReadPbuf->len - rmgLen)), cpyLen);
     inLen += cpyLen;
     buf += cpyLen;
-    
+
     rmgLen = rmgLen - cpyLen; //Update rmgLen
-    
+
     if( rmgLen > 0 )
     {
       //We did not read this pbuf completely, so let's save it's pos & return
       break;
     }
-    
+
     if(m_pReadPbuf->next)
     {
       pbuf* pNextPBuf = m_pReadPbuf->next;
@@ -246,11 +246,11 @@ int /*if < 0 : NetTcpSocketErr*/ LwipNetTcpSocket::recv(char* buf, int len)
       rmgLen = 0;
       break; //No more data to read
     }
-    
+
   }
-  
+
   //tcp_recved(m_pPcb, inLen); //Acknowledge the reception
-  
+
   return inLen;
 }
 
@@ -261,13 +261,13 @@ NetTcpSocketErr LwipNetTcpSocket::close()
   if(m_closed)
     return NETTCPSOCKET_OK; //Already being closed
   m_closed = true;
-  
+
   if( !m_pPcb ) //Pcb doesn't exist (anymore)
     return NETTCPSOCKET_MEM;
-    
+
   //Cleanup incoming data
   cleanUp();
- 
+
   if( !!tcp_close( (tcp_pcb*) m_pPcb) )
   {
     DBG("LwipNetTcpSocket::close() could not close properly, abort.\n");
@@ -275,9 +275,9 @@ NetTcpSocketErr LwipNetTcpSocket::close()
     m_pPcb = NULL;
     return NETTCPSOCKET_MEM;
   }
-  
+
   DBG("LwipNetTcpSocket::close() : connection closed successfully.\n");
-  
+
   m_pPcb = NULL;
   return NETTCPSOCKET_OK;
 }
@@ -300,17 +300,17 @@ err_t LwipNetTcpSocket::acceptCb(struct tcp_pcb *newpcb, err_t err)
   //FIXME: MEM Errs
   //m_lpInPcb.push(newpcb); //Add connection to the queue
   LwipNetTcpSocket* pNewNetTcpSocket = new LwipNetTcpSocket(newpcb);
-  
+
   if(pNewNetTcpSocket == NULL)
   {
     DBG("Not enough mem, socket dropped in LwipNetTcpSocket::acceptCb.\n");
     tcp_abort(newpcb);
     return ERR_ABRT;
   }
-  
+
   pNewNetTcpSocket->m_refs++;
   m_lpInNetTcpSocket.push( pNewNetTcpSocket );
-  
+
  // tcp_accepted(newpcb);
  // tcp_accepted( m_pPcb ); //Should fire proper events //WARN: m_pPcb is the GOOD param here (and not pInPcb)
   queueEvent(NETTCPSOCKET_ACCEPT);
@@ -337,7 +337,7 @@ void LwipNetTcpSocket::errCb(err_t err)
   else //if( err == ERR_RST)
     queueEvent(NETTCPSOCKET_CONRST);
 }
-  
+
 err_t LwipNetTcpSocket::sentCb(tcp_pcb* tpcb, u16_t len)
 {
 //  DBG("%d bytes ACKed by host.\n", len);
@@ -350,7 +350,7 @@ err_t LwipNetTcpSocket::recvCb(tcp_pcb* tpcb, pbuf *p, err_t err)
   //Store pbuf ptr
  // DBG("Receive CB with err = %d & len = %d.\n", err, p->tot_len);
 //  tcp_recved( (tcp_pcb*) m_pPcb, p->tot_len); //Acknowledge the reception
-  
+
   if(err)
   {
     queueEvent(NETTCPSOCKET_ERROR);
@@ -360,16 +360,16 @@ err_t LwipNetTcpSocket::recvCb(tcp_pcb* tpcb, pbuf *p, err_t err)
   {
     DBG("NetTcpSocket %p - Connection closed by remote host (LwipNetTcpSocket::recvCb).\n", (void*)this);
     //Buf is NULL, that means that the connection has been closed by remote host
-    
+
     //FIX: 27/05/2010: We do not want to deallocate the socket while some data might still be readable
     //REMOVED:   close();
- 
+
     //However we do not want to close the socket yet
- 
+
     queueEvent(NETTCPSOCKET_DISCONNECTED);
-    return ERR_OK; 
+    return ERR_OK;
   }
-  
+
   //We asserted that p is a valid pointer
 
   //New data processing
@@ -398,7 +398,7 @@ void LwipNetTcpSocket::cleanUp() //Flush input buffer
     tcp_sent((tcp_pcb*) m_pPcb, NULL );
     tcp_err( (tcp_pcb*) m_pPcb, NULL );
   }
-  
+
   if( m_pReadPbuf )
   {
     DBG("Deallocating unread data.\n");
@@ -432,7 +432,7 @@ void LwipNetTcpSocket::sErrCb(void *arg, err_t err)
   LwipNetTcpSocket* pMe = (LwipNetTcpSocket*) arg;
   return pMe->errCb( err );
 }
-  
+
 err_t LwipNetTcpSocket::sSentCb(void *arg, struct tcp_pcb *tpcb, u16_t len)
 {
   LwipNetTcpSocket* pMe = (LwipNetTcpSocket*) arg;
@@ -446,7 +446,7 @@ err_t LwipNetTcpSocket::sRecvCb(void *arg, struct tcp_pcb *tpcb, struct pbuf *p,
     //The Pcb is in a closing state
     //Discard that data here since we might have destroyed the corresponding socket object
     tcp_recved( tpcb, p->tot_len);
-    pbuf_free( p );    
+    pbuf_free( p );
     return ERR_OK;
   }
   LwipNetTcpSocket* pMe = (LwipNetTcpSocket*) arg;
