@@ -37,11 +37,6 @@ struct block_hash {
   unsigned char md4[HASH_SIZE];
 };
 
-struct write_event {
-  int block_num;
-  unsigned char data[BLOCK_SIZE];
-};
-
 class SyncedSDFileSystem : public SDFileSystem {
  public:
   /** Create the File System for accessing an SD Card using SPI
@@ -54,9 +49,6 @@ class SyncedSDFileSystem : public SDFileSystem {
    */
   SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi, PinName miso, PinName sclk, PinName cs, const char* name);
   ~SyncedSDFileSystem();
-
-  virtual int rename(const char *oldname, const char *newname);
-  virtual int mkdir(const char *name, mode_t mode);
 
   virtual int disk_initialize();
   virtual int disk_write(const char *buffer, int block_number);

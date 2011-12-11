@@ -10,14 +10,27 @@ string ip_to_string(IpAddr addr) {
 
 SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi, PinName miso, PinName sclk, PinName cs, const char* name) :
     SDFileSystem(mosi, miso, sclk, cs, name) {
-  TCPSocketErr err;
   address_ = addr;
   is_master_ = is_master;
   tcp_socket_ = new TCPSocket();
-  dirty_ = vector<bool>(BLOCK_NUM, false);
-  block_md4_ = vector<struct block_hash>(BLOCK_NUM);
+}
 
-  for (int i = 0; i < BLOCK_NUM; ++i) {
+SyncedSDFileSystem::~SyncedSDFileSystem() {
+  if (tcp_socket_) {
+    tcp_socket_->close();
+    delete tcp_socket_;
+  }
+}
+
+int SyncedSDFileSystem::disk_initialize() {
+  int ret;
+  TCPSocketErr err;
+
+  ret = SDFileSystem::disk_initialize();
+
+  dirty_ = vector<bool>(MAX_SYNCED_BLOCKS, false);
+  block_md4_ = vector<struct block_hash>(MAX_SYNCED_BLOCKS);
+  for (int i = 0; i < MAX_SYNCED_BLOCKS; ++i) {
     block_md4_[i].block_num = i;
     if (SDFileSystem::disk_read((char *)buffer_, i)) {
       // TODO: handle error
@@ -25,10 +38,11 @@ SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi
     mdfour((unsigned char *) block_md4_[i].md4, buffer_, BLOCK_SIZE);
   }
 
-  if (is_master) {
+  if (is_master_) {
     tcp_socket_->setOnEvent(this, &SyncedSDFileSystem::on_master_event);
-    tcp_socket_->bind(Host(addr, SYNC_FS_PORT));
+    tcp_socket_->bind(Host(address_, SYNC_FS_PORT));
     tcp_socket_->listen();
+    debug("MASTER: listening for connections");
   } else {
     tcp_socket_->setOnEvent(this, &SyncedSDFileSystem::on_node_event);
     err = tcp_socket_->connect(Host(IpAddr(192, 168, 1, MASTER_ADDR), SYNC_FS_PORT));
@@ -42,26 +56,7 @@ SyncedSDFileSystem::SyncedSDFileSystem(IpAddr addr, bool is_master, PinName mosi
       debug("SLAVE: connected to master");
     }
   }
-}
-
-SyncedSDFileSystem::~SyncedSDFileSystem() {
-  if (tcp_socket_) {
-    tcp_socket_->close();
-    delete tcp_socket_;
-  }
-}
-
-int SyncedSDFileSystem::disk_initialize() {
-  // do sync stuff, then do SyncedSDFileSystemclass disk_initialize
-  return SDFileSystem::disk_initialize();
-}
-
-int SyncedSDFileSystem::rename(const char *oldname, const char *newname) {
-  return SDFileSystem::rename(oldname, newname);
-}
-
-int SyncedSDFileSystem::mkdir(const char *name, mode_t mode) {
-  return SDFileSystem::mkdir(name, mode);
+  return ret;
 }
 
 /*
@@ -70,22 +65,40 @@ int SyncedSDFileSystem::mkdir(const char *name, mode_t mode) {
 int SyncedSDFileSystem::disk_write(const char *buffer, int block_number) {
   int ret;
 
-  if (is_master_) {
+  if (block_number >= MAX_SYNCED_BLOCKS) {
     ret = SDFileSystem::disk_write(buffer, block_number);
-    master_broadcast_update(buffer, block_number);
   } else {
-    dirty_[block_number] = true;
-    ret = SDFileSystem::disk_write(buffer, block_number);
-    node_request_write(buffer, block_number);
+    debug("SDFS: disk_write to %d", block_number);
+    if (is_master_) {
+      ret = SDFileSystem::disk_write(buffer, block_number);
+      master_broadcast_update(buffer, block_number);
+    } else {
+      dirty_[block_number] = true;
+      ret = SDFileSystem::disk_write(buffer, block_number);
+      node_request_write(buffer, block_number);
+    }
   }
   return ret;
 }
 
 int SyncedSDFileSystem::disk_read(char *buffer, int block_number) {
-  while (dirty_[block_number]) {
-    wait_us(5); //FIXME
+  int ret;
+  volatile bool is_dirty;
+
+  if (block_number >= MAX_SYNCED_BLOCKS) {
+    ret = SDFileSystem::disk_read(buffer, block_number);
+  } else {
+    debug("SDFS: disk_read from %d", block_number);
+    is_dirty = dirty_[block_number];
+    while (is_dirty) {
+      debug("SDFS: spin on disk_read to %d", block_number);
+      Net::poll();
+      is_dirty = dirty_[block_number];
+    }
+    ret = SDFileSystem::disk_read(buffer, block_number);
+    debug("SDFS: disk_read %d completed", block_number);
   }
-  return SDFileSystem::disk_read(buffer, block_number);
+  return ret;
 }
 
 int SyncedSDFileSystem::disk_status() {

@@ -21,21 +21,30 @@ void write_name_file() {
   pc.printf("SLAVE: writing\n\r");
   IpAddr addr = eth->getIp();
   FILE *fp = fopen(NAME_FILE, "w");
+  pc.printf("SLAVE: opened file\n\r");
   if (fp != NULL) {
+    pc.printf("SLAVE: valid fp\n\r");
     fprintf(fp, "%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]);
+    pc.printf("SLAVE: wrote file\n\r");
+    fclose(fp);
+    pc.printf("SLAVE: close fp\n\r");
   }
-  fclose(fp);
+  pc.printf("SLAVE: write completed\n\r");
 }
 
 void read_name_file() {
   pc.printf("MASTER: reading\n\r");
   uint8_t q0, q1, q2, q3;
   FILE *fp = fopen(NAME_FILE, "r");
+  pc.printf("MASTER: opened file\n\r");
   if (fp != NULL) {
+    pc.printf("MASTER: valid fp\n\r");
     fscanf(fp, "%d.%d.%d.%d", &q0, &q1, &q2, &q3);
     pc.printf("%d.%d.%d.%d is Spartacus!\n\r", &q0, &q1, &q2, &q3);
+    fclose(fp);
+    pc.printf("MASTER: close fp\n\r");
   }
-  fclose(fp);
+  pc.printf("MASTER: read completed\n\r");
 }
 
 void do_slave() {
@@ -61,7 +70,7 @@ void do_master() {
 
 int main() {
   IpAddr ip;
-  pc.baud(115200);
+  //pc.baud(115200);
   if (IS_MASTER) {
     eth = new EthernetNetIf(
         IpAddr(192,168,1,164), // ip

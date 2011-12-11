@@ -1,6 +1,7 @@
 #ifndef FS_CONSTANTS_H_
 #define FS_CONSTANTS_H_
 
+#define MAX_SYNCED_BLOCKS 32
 #define ECHO_TIMEOUT 30 // 30 seconds
 #define MASTER_ADDR 164
 #define SYNC_FS_PORT 31415
