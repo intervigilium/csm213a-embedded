@@ -10,14 +10,14 @@
 #include "ipaddr.h"
 #include "master_node_handler.h"
 #include "mbed.h"
-#include "SDFileSystem.h"
+#include "SDHCFileSystem.h"
 #include "TCPSocket.h"
 
 /** Access the filesystem on an SD Card using SPI
  *
  * @code
  * #include "mbed.h"
- * #include "SDFileSystem.h"
+ * #include "synced_sd_filesystem.h"
  *
  * SyncedSDFileSystem sd(p5, p6, p7, p12, "sd"); // mosi, miso, sclk, cs
  *
