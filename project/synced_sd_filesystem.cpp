@@ -97,7 +97,7 @@ int SyncedSDFileSystem::disk_sectors() {
   return SDFileSystem::disk_sync();
 }
 
-// PROTECTED FUNCTIONS
+// PRIVATE FUNCTIONS
 
 void SyncedSDFileSystem::on_node_event(TCPSocketEvent e) {
   char msg_type;
@@ -229,8 +229,6 @@ int SyncedSDFileSystem::node_request_write(const char *buffer, int block_number)
   }
   return 0;
 }
-
-// PRIVATE FUNCTIONS
 
 void SyncedSDFileSystem::node_handle_update_block() {
   int block_num;

@@ -65,13 +65,13 @@ class SyncedSDFileSystem : public SDFileSystem {
   virtual int disk_sectors();
 
  protected:
-  virtual void on_node_event(TCPSocketEvent e);
-  virtual void on_master_event(TCPSocketEvent e);
-  virtual void master_broadcast_update(const char *buffer, int block_number);
-  virtual int node_request_sync(int block_num, const char *block_checksums);
-  virtual int node_request_write(const char *buffer, int block_number);
 
  private:
+  void on_node_event(TCPSocketEvent e);
+  void on_master_event(TCPSocketEvent e);
+  void master_broadcast_update(const char *buffer, int block_number);
+  int node_request_sync(int block_num, const char *block_checksums);
+  int node_request_write(const char *buffer, int block_number);
   void node_handle_update_block();
   void node_handle_write_success();
 
