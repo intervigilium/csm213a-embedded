@@ -191,7 +191,7 @@ void SyncedSDFileSystem::on_master_event(TCPSocketEvent e) {
 
 void SyncedSDFileSystem::master_broadcast_update(const char *buffer, int block_number) {
   // send MSG_UPDATE_BLOCK to all slaves
-  map<string, MasterNodeHandler *>const_iterator it;
+  map<string, MasterNodeHandler *>::const_iterator it;
   for (it = node_handlers_.begin(); it != node_handlers_.end(); it++) {
     (*it).second->send_block(buffer, block_number);
   }
