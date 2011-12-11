@@ -19,12 +19,14 @@ class MasterNodeHandler {
 
  private:
   void on_socket_event(TCPSocketEvent e);
-  void dispatch_request();
+  void handle_write_block();
+  void handle_sync();
   void close();
 
   SyncedSDFileSystem *sdfs_;
   TCPSocket *slave_socket_;
   bool is_closed_;
+  char buffer_[BLOCK_SIZE];
 
 };
 
