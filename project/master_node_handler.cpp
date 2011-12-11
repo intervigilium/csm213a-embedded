@@ -2,11 +2,12 @@
 #include "ipaddr.h"
 #include "master_node_handler.h"
 
-MasterNodeHandler::MasterNodeHandler(SyncedSDFileSystem *sdfs, Host slave, TCPSocket *slave_socket) {
-  is_closed_ = false;
-  sdfs_ = sdfs;
-  slave_ = slave;
-  slave_socket_ = slave_socket;
+MasterNodeHandler::MasterNodeHandler(SyncedSDFileSystem *sdfs, Host slave, TCPSocket *slave_socket) 
+    : NetService(),
+      slave_(slave),
+      slave_socket_(slave_socket),
+      timeout_watchdog_(),
+      is_closed_(false) {
   slave_socket_->setOnEvent(this, &MasterNodeHandler::on_socket_event);
 }
 
@@ -46,6 +47,7 @@ void MasterNodeHandler::on_socket_event(TCPSocketEvent e) {
 
   switch (e) {
     case TCPSOCKET_READABLE:
+      timeout_watchdog_.detach();
       if (slave_socket_->recv(&msg_type, 1) != 1) {
         // TODO: handle error
       }
@@ -60,6 +62,7 @@ void MasterNodeHandler::on_socket_event(TCPSocketEvent e) {
           // TODO: handle error
           break;
       }
+      set_timeout(ECHO_TIMEOUT);
       break;
     case TCPSOCKET_WRITEABLE:
       break;
@@ -69,6 +72,7 @@ void MasterNodeHandler::on_socket_event(TCPSocketEvent e) {
     case TCPSOCKET_ERROR:
     case TCPSOCKET_DISCONNECTED:
       // TODO: handle error
+      close();
       break;
     case TCPSOCKET_ACCEPT:
     default:
@@ -129,8 +133,23 @@ void MasterNodeHandler::handle_sync() {
 }
 
 void MasterNodeHandler::close() {
+  if (is_closed_) {
+    return;
+  }
+  timeout_watchdog_.detach();
   is_closed_ = true;
-  slave_socket_->resetOnEvent();
-  slave_socket_->close();
-  delete slave_socket_;
+  if (slave_socket_) {
+    slave_socket_->resetOnEvent();
+    slave_socket_->close();
+    delete slave_socket_;
+  }
+  NetService::close();
+}
+
+void MasterNodeHandler::set_timeout(int timeout) {
+  timeout_watchdog_.attach(this, &MasterNodeHandler::on_timeout, ECHO_TIMEOUT);
+}
+
+void MasterNodeHandler::on_timeout() {
+  close();
 }

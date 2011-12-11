@@ -4,15 +4,17 @@
 #include "EthernetNetIf.h"
 #include "host.h"
 #include "fs_constants.h"
+#include "mbed.h"
+#include "netservice.h"
 #include "synced_sd_filesystem.h"
 #include "TCPSocket.h"
 
 class SyncedSDFileSystem;
 
-class MasterNodeHandler {
+class MasterNodeHandler : public NetService {
  public:
   MasterNodeHandler(SyncedSDFileSystem *sdfs, Host slave, TCPSocket *slave_socket);
-  ~MasterNodeHandler();
+  virtual ~MasterNodeHandler();
   bool is_closed();
   void send_block(const char *buffer, int block_number);
 
@@ -23,10 +25,13 @@ class MasterNodeHandler {
   void handle_write_block();
   void handle_sync();
   void close();
+  void set_timeout(int timeout);
+  void on_timeout();
 
   SyncedSDFileSystem *sdfs_;
   Host slave_;
   TCPSocket *slave_socket_;
+  Timeout timeout_watchdog_;
   bool is_closed_;
   char buffer_[BLOCK_SIZE];
 
