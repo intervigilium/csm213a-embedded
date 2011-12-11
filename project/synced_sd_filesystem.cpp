@@ -154,7 +154,7 @@ void SyncedSDFileSystem::on_master_event(TCPSocketEvent e) {
       if (err) {
         // TODO: handle errors
       }
-      dispatcher = new MasterNodeHandler(this, slave_socket);
+      dispatcher = new MasterNodeHandler(this, slave, slave_socket);
       node_handlers_.insert(pair<string, MasterNodeHandler *>(ip_to_string(slave.getIp()), dispatcher));
       // dispatcher should destroy self when done or disconnected
       break;

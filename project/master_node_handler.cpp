@@ -1,8 +1,11 @@
+#include "debug.h"
+#include "ipaddr.h"
 #include "master_node_handler.h"
 
-MasterNodeHandler::MasterNodeHandler(SyncedSDFileSystem *sdfs, TCPSocket *slave_socket) {
+MasterNodeHandler::MasterNodeHandler(SyncedSDFileSystem *sdfs, Host slave, TCPSocket *slave_socket) {
   is_closed_ = false;
   sdfs_ = sdfs;
+  slave_ = slave;
   slave_socket_ = slave_socket;
   slave_socket_->setOnEvent(this, &MasterNodeHandler::on_socket_event);
 }
@@ -16,16 +19,22 @@ bool MasterNodeHandler::is_closed() {
 }
 
 void MasterNodeHandler::send_block(const char *buffer, int block_number) {
+  IpAddr ip = slave_.getIp();
+  debug("MASTER: UPDATE_BLOCK to %d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+
   int ret;
   char msg_type = MSG_UPDATE_BLOCK;
+
   ret = slave_socket_->send((char *) &msg_type, 1);
   if (ret != 1) {
     // TODO: handle error
   }
+
   ret = slave_socket_->send((char *) &block_number, sizeof(int));
   if (ret != sizeof(int)) {
     // TODO: handle error
   }
+
   ret = slave_socket_->send(buffer, BLOCK_SIZE);
   if (ret != BLOCK_SIZE) {
     // TODO: handle error
@@ -34,6 +43,7 @@ void MasterNodeHandler::send_block(const char *buffer, int block_number) {
 
 void MasterNodeHandler::on_socket_event(TCPSocketEvent e) {
   char msg_type;
+
   switch (e) {
     case TCPSOCKET_READABLE:
       if (slave_socket_->recv(&msg_type, 1) != 1) {
@@ -68,27 +78,42 @@ void MasterNodeHandler::on_socket_event(TCPSocketEvent e) {
 }
 
 void MasterNodeHandler::handle_write_block() {
+  IpAddr ip = slave_.getIp();
+  debug("MASTER: WRITE_BLOCK from %d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+
+  int ret;
   int block_num;
-  int ret = slave_socket_->recv((char *) &block_num, sizeof(int));
+
+  ret = slave_socket_->recv((char *) &block_num, sizeof(int));
   if (ret != sizeof(int)) {
     // TODO: handle error
   }
+
   ret = slave_socket_->recv(buffer_, BLOCK_SIZE);
   if (ret != BLOCK_SIZE) {
     // TODO: handle error
   }
+
   // disk_write will broadcast update as part of write
   sdfs_->disk_write(buffer_, block_num);
+
+  // TODO: send write success/fail back to node
 }
 
 void MasterNodeHandler::handle_sync() {
+  IpAddr ip = slave_.getIp();
+  debug("MASTER: REQUEST_SYNC from %d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+
+  int ret;
+  int block_num;
   unsigned char md4_buf[HASH_SIZE];
   char block[BLOCK_SIZE];
-  int block_num;
-  int ret = slave_socket_->recv((char *) &block_num, sizeof(int));
+
+  ret = slave_socket_->recv((char *) &block_num, sizeof(int));
   if (ret != sizeof(int)) {
     // TODO: handle error
   }
+
   ret = slave_socket_->recv(buffer_, BLOCK_SIZE);
   if (ret != BLOCK_SIZE) {
     // TODO: handle error
