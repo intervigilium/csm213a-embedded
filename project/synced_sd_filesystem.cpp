@@ -100,42 +100,22 @@ int SyncedSDFileSystem::disk_sectors() {
 // PROTECTED FUNCTIONS
 
 void SyncedSDFileSystem::on_node_event(TCPSocketEvent e) {
-  int ret;
-  int block_num;
   char msg_type;
   switch (e) {
     case TCPSOCKET_CONNECTED:
       // now connected, do nothing, assume connection is constant
       break;
     case TCPSOCKET_READABLE:
-      ret = node_socket_->recv(&msg_type, 1);
-      if (ret != 1) {
+      if (node_socket_->recv(&msg_type, 1) != 1) {
         // TODO: handle error
         break;
       }
       switch (msg_type) {
         case MSG_UPDATE_BLOCK:
-          ret = node_socket_->recv((char *) &block_num, sizeof(int));
-          if (ret != sizeof(int)) {
-            // TODO: handle error
-          }
-          ret = node_socket_->recv((char *) buffer_, BLOCK_SIZE);
-          if (ret != BLOCK_SIZE) {
-            // TODO: handle error
-          }
-          ret = SDFileSystem::disk_write((char *)buffer_, block_num);
-          if (ret) {
-            // TODO: handle error
-          }
-          mdfour((unsigned char*)block_md4_[block_num].md4, buffer_, BLOCK_SIZE);
-          dirty_[block_num] = false;
+          node_handle_update_block();
           break;
         case MSG_WRITE_SUCCESS:
-          ret = node_socket_->recv((char *) &block_num, sizeof(int));
-          if (ret != sizeof(int)) {
-            // TODO: handle error
-          }
-          dirty_[block_num] = false;
+          node_handle_write_success();
           break;
         default:
           // TODO: handle error
@@ -251,3 +231,30 @@ int SyncedSDFileSystem::node_request_write(const char *buffer, int block_number)
 }
 
 // PRIVATE FUNCTIONS
+
+void SyncedSDFileSystem::node_handle_update_block() {
+  int block_num;
+  int ret = node_socket_->recv((char *) &block_num, sizeof(int));
+  if (ret != sizeof(int)) {
+    // TODO: handle error
+  }
+  ret = node_socket_->recv((char *) buffer_, BLOCK_SIZE);
+  if (ret != BLOCK_SIZE) {
+    // TODO: handle error
+  }
+  ret = SDFileSystem::disk_write((char *)buffer_, block_num);
+  if (ret) {
+    // TODO: handle error
+  }
+  mdfour((unsigned char*)block_md4_[block_num].md4, buffer_, BLOCK_SIZE);
+  dirty_[block_num] = false;
+}
+
+void SyncedSDFileSystem::node_handle_write_success() {
+  int block_num;
+  int ret = node_socket_->recv((char *) &block_num, sizeof(int));
+  if (ret != sizeof(int)) {
+    // TODO: handle error
+  }
+  dirty_[block_num] = false;
+}
